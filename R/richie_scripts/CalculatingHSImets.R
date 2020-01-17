@@ -31,8 +31,8 @@ watsh <- "lem"
 d <- "_d.tif"
 v <- "_v.tif"
 name <- paste(spec, ls, watsh, sep = "_")
-##Read in reach polygons.Create one object for each reach##
 
+##Read in reach polygons.Create one object for each reach##
 reaches <- st_read("F:/UpperSalmon_Pahsimeroi_Lemhi_BOR/GeoReaches/Lem_Poly_Label.shp") 
 
 gr_6 <- filter(reaches, Name == "GR-6")
@@ -472,6 +472,10 @@ names(hsi_merge) <- c("ID", "layer")
 
 
 #Calculating HSI metrics##
+# for lem the pixels are 1m x 1m = 1sq meter
+# for pahs, us the pixels are 3' x 3' = 1sq yard
+
+cell_size = res[1] * res[2]
 
 hsi_mets <- hsi_merge %>%
   mutate(Cell_Area = 1) %>%
@@ -480,7 +484,7 @@ hsi_mets <- hsi_merge %>%
             WUA = sum(layer),
             HHS = WUA/Reach_Area)
 
-##Write out HSI metrics to CSV##
+
 
 write.csv(hsi_mets, paste(outdir, "Lem_Juv_Chnk.csv", sep = "/"))
 
