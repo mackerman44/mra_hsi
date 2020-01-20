@@ -11,6 +11,11 @@ library(rgdal)
 library(sf)
 library(tidyverse)
 
+# set some arguments, for file naming, etc.
+spc = "chnk" # species: either "chnk" or "sthd"
+ls  = "juv"  # life stage: either "juv" or "spw"
+ssn = "sum"  # season: either "sum" or "win"
+
 ## read in depth and velocity rasters
 d_rast <- raster("data/D_Aug_All.tif")
 v_rast <- raster("data/V_Aug_All.tif")
@@ -31,10 +36,6 @@ for(rch in rch_names) {
 
 # read in functions to calculate HSI
 source("R/hsi_curves.R")
-
-# set some arguments, for file naming, etc.
-spc = "chnk" # species: either "chnk" or "sthd"
-ls  = "juv"  # life stage: either "juv" or "spw"
 
 # Calculate suitability insert appropriate function
 d_suit <- calc(d_rast, chnk_juv_d)
