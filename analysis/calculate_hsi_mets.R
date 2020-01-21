@@ -13,16 +13,18 @@ library(tidyverse)
 
 # set some arguments, for file naming, etc.
 spc = "chnk" # species: either "chnk" or "sthd"
-ls  = "juv"  # life stage: either "juv" or "spw"
-ssn = "sum"  # season: either "sum" or "win"
+ls  = "spw"  # life stage: either "juv" or "spw"
+ssn = "win"  # season: either "sum" or "win"
 
 ## read in depth and velocity rasters
-d_rast <- raster("data/D_Aug_All.tif")
-v_rast <- raster("data/V_Aug_All.tif")
-# summer_d <- raster("data/D_Aug_All.tif")
-# summer_v <- raster("data/V_Aug_All.tif")
-# winter_d <- raster("data/d_jan_v2")
-# winter_v <- raster("data/v_jan_v2")
+if(ssn == "sum") {
+  d_rast <- raster("data/D_Aug_All.tif")
+  v_rast <- raster("data/V_Aug_All.tif")
+}
+if(ssn == "win") {
+  d_rast <- raster("data/d_jan_v2")
+  v_rast <- raster("data/d_jan_v2")  
+}
 
 # Read in reach polygons
 reaches <- st_read("data/geomorph/Lem_Poly_Label.shp")
@@ -38,12 +40,14 @@ for(rch in rch_names) {
 source("R/hsi_curves.R")
 
 # Calculate suitability insert appropriate function
-d_suit <- calc(d_rast, chnk_juv_d)
-v_suit <- calc(v_rast, chnk_juv_v) 
+d_curve = paste0(spc, "_", ls, "_d")
+v_curve = paste0(spc, "_", ls, "_v")
+d_suit <- calc(d_rast, get(d_curve)) # FIX THIS TO BE DYNAMIC
+v_suit <- calc(v_rast, get(v_curve)) 
 
 # Write rasters if desired
-writeRaster(d_suit, paste0("output/hsi/", spc, "_", ls, "_", "d_suit.tif"))
-writeRaster(v_suit, paste0("output/hsi/", spc, "_", ls, "_", "v_suit.tif"))
+writeRaster(d_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_d_suit.tif"))
+writeRaster(v_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_v_suit.tif"))
 
 # Function to calculate composite suitability using geometric mean of depth and velocity
 comp_hsi <- function(r1, r2) {
@@ -53,7 +57,7 @@ comp_hsi <- function(r1, r2) {
 
 # Calculate geometric mean and create a new raster
 comp_suit <- overlay(d_suit, v_suit, fun = comp_hsi)
-writeRaster(comp_suit, paste0("output/hsi/", spc, "_", ls, "_", "comp_suit.tif"))
+writeRaster(comp_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_comp_suit.tif"))
 
 # Calculate metrics at reach scale wetted area, WUA, HHS
 # Extract raster values at polygon 'reaches' from each object created using the reaches polygon
@@ -85,7 +89,8 @@ hsi_mets = hsi_merge %>%
             WUA = sum(value),
             HHS = WUA/area_m2) %>%
   mutate(species = spc,
-         life_stage = ls)
+         life_stage = ls,
+         season = ssn)
 
 # Write out HSI metrics to .csv
-write.csv(hsi_mets, paste0("output/hsi/", spc, "_", ls, "_hsi_mets.csv"))
+write.csv(hsi_mets, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_hsi_mets.csv"))
