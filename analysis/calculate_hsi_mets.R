@@ -12,9 +12,9 @@ library(sf)
 library(tidyverse)
 
 # set some arguments, for file naming, etc.
-spc = "chnk" # species: either "chnk" or "sthd"
+spc = "sthd" # species: either "chnk" or "sthd"
 ls  = "spw"  # life stage: either "juv" or "spw"
-ssn = "win"  # season: either "sum" or "win"
+ssn = "sum"  # season: either "sum" or "win"
 
 ## read in depth and velocity rasters
 if(ssn == "sum") {
@@ -22,8 +22,8 @@ if(ssn == "sum") {
   v_rast <- raster("data/V_Aug_All.tif")
 }
 if(ssn == "win") {
-  d_rast <- raster("data/d_jan_v2")
-  v_rast <- raster("data/d_jan_v2")  
+  d_rast <- raster("data/d_jan_v2.tif")
+  v_rast <- raster("data/d_jan_v2.tif")  
 }
 
 # Read in reach polygons
