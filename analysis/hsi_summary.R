@@ -246,11 +246,17 @@ ggsave("output/figures/geomorph_summaries.pdf", geo_p)
 #############################################################
 # Plot species and geomorph summaries together; easy method #
 #############################################################
-grid.arrange(species_p,
+grid.arrange(species_p +
+               theme(axis.title.x = element_blank(),
+                     axis.text.x = element_blank(),
+                     axis.ticks.x = element_blank()),
              geo_p,
              ncol = 1)
 
-g = arrangeGrob(species_p,
+g = arrangeGrob(species_p  +
+                  theme(axis.title.x = element_blank(),
+                        axis.text.x = element_blank(),
+                        axis.ticks.x = element_blank()),
                 geo_p,
                 ncol = 1)
 ggsave("output/figures/species_geomorph_summaries.pdf", g)
@@ -294,3 +300,13 @@ all_scenarios_map = hsi_df %>%
   facet_grid(species ~ Scenario)
 all_scenarios_map
 ggsave("output/figures/hhs_map.pdf", all_scenarios_map)
+
+###########################
+# save all plots and maps #
+###########################
+plot_list = lapply(ls(pattern = "\\_p$"), get)
+save(plot_list, file = "output/hsi_plots.RData")
+
+map_list = lapply(ls(pattern = "\\_map$"), get)
+save(map_list, file = "output/hsi_maps.RData")
+
