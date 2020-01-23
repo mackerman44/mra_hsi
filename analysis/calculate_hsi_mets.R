@@ -15,8 +15,8 @@ library(tidyverse)
 
 # set some arguments, for file naming, etc.
 spc = "chnk" # species: either "chnk" or "sthd"
-ls  = "spw"  # life stage: either "juv" or "spw"
-ssn = "sum"  # season: either "sum" or "win"
+ls  = "juv"  # life stage: either "juv" or "spw"
+ssn = "win"  # season: either "sum" or "win"
 
 ## read in depth and velocity rasters
 if(ssn == "sum") {
@@ -48,8 +48,8 @@ d_suit <- calc(d_rast, get(d_curve)) # FIX THIS TO BE DYNAMIC
 v_suit <- calc(v_rast, get(v_curve)) 
 
 # Write rasters if desired
-writeRaster(d_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_d_suit.tif"))
-writeRaster(v_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_v_suit.tif"))
+writeRaster(d_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_d_suit.tif"), overwrite = T)
+writeRaster(v_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_v_suit.tif"), overwrite = T)
 
 # Function to calculate composite suitability using geometric mean of depth and velocity
 comp_hsi <- function(r1, r2) {
@@ -59,7 +59,7 @@ comp_hsi <- function(r1, r2) {
 
 # Calculate geometric mean and create a new raster
 comp_suit <- overlay(d_suit, v_suit, fun = comp_hsi)
-writeRaster(comp_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_comp_suit.tif"))
+writeRaster(comp_suit, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_comp_suit.tif"), overwrite = T)
 
 # Calculate metrics at reach scale wetted area, WUA, HHS
 # Extract raster values at polygon 'reaches' from each object created using the reaches polygon
