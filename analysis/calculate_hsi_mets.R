@@ -11,8 +11,10 @@ library(rgdal)
 library(sf)
 library(tidyverse)
 
+# NOTE: Do I need to re-run steelhead spawning using the Jan .tif instead of the August one?
+
 # set some arguments, for file naming, etc.
-spc = "sthd" # species: either "chnk" or "sthd"
+spc = "chnk" # species: either "chnk" or "sthd"
 ls  = "spw"  # life stage: either "juv" or "spw"
 ssn = "sum"  # season: either "sum" or "win"
 
