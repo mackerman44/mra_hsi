@@ -14,7 +14,7 @@ library(ggmap)
 library(sf)
 
 ## read in all of the HSI results
-hsi_outputs = list.files(path = "output/hsi/", pattern = "*.csv", full.names = T)
+hsi_outputs = list.files(path = "output/hsi_csvs/", pattern = "*.csv", full.names = T)
 hsi_df = sapply(hsi_outputs, read_csv, simplify = F) %>%
   bind_rows(.id = "id") %>%
   dplyr::select(-c(id, X1)) %>%
@@ -293,4 +293,4 @@ all_scenarios_map = hsi_df %>%
   theme_bw() +
   facet_grid(species ~ Scenario)
 all_scenarios_map
-
+ggsave("output/figures/hhs_map.pdf", all_scenarios_map)
