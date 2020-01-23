@@ -192,3 +192,50 @@ all_scenario_p = hsi_df %>%
   facet_grid(species ~ Scenario)
 all_scenario_p
 
+###########################
+# Plot geomorph summaries #
+###########################
+# geomorphic tiers
+tier_p = tier_summary %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier)",
+       fill = "Geomorphic Tier") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+tier_p
+
+# channel units
+cu_p = cu_summary %>%
+  ggplot(aes(x = Name, y = p_ChanUnit, fill = ChanUnits)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Channel Unit)",
+       fill = "Channel Unit") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+cu_p
+
+# geomorph and cu
+geo_p = tier_summary %>%
+  mutate(Category = "Geomorphic Tiers") %>%
+  rename(ChanUnits = Geo_Tier,
+         p_ChanUnit = p_Geo_Tier) %>%
+  rbind(cu_summary %>%  mutate(Category = "Channel Units")) %>%
+  rename(Unit = ChanUnits,
+         p = p_ChanUnit) %>%
+  ggplot(aes(x = Name, y = p, fill = Unit)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Unit)") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0)) +
+  facet_grid(Category ~ .)
+geo_p
+
+    
+    
+
+  
+
