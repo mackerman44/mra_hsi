@@ -95,4 +95,4 @@ hsi_mets = hsi_merge %>%
          season = ssn)
 
 # Write out HSI metrics to .csv
-write.csv(hsi_mets, paste0("output/hsi/", spc, "_", ls, "_", ssn, "_hsi_mets.csv"))
+write.csv(hsi_mets, paste0("output/hsi_csvs/", spc, "_", ls, "_", ssn, "_hsi_mets.csv"))
