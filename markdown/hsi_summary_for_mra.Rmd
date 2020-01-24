@@ -1,0 +1,53 @@
+---
+title: "Habitat Suitability for Upper Salmon Subbasin Multiple Reach Assessments"
+author:
+  - name: Mike Ackerman
+    affiliation: Biomark, Inc.
+    email: mike.ackerman@merck.com
+  - name: Richie Carmichael
+    affiliation: Biomark, Inc.
+    email: richard.carmichael@merck.com
+  - name: Kevin See
+    affiliation: Biomark, Inc.
+    email: kevin.see@merck.com
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output:
+  bookdown::html_document2:
+    theme: simplex
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    fig_height: 6
+    fig_width: 8
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks.lua
+    - --lua-filter=../templates/pagebreak.lua
+institute:
+- biomark: Biomark, Inc.
+csl: "../templates/american-fisheries-society.csl"
+---
+
+# Introduction
+
+The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analyses in support of future project identification, prioritization, and design in the Upper Salmon Subbasin, Idaho. The biologic and geomorphic analyses are being lead by Biomark Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Past efforts from the team resulted in the development of a watershed-scale Integrated Rehabilitation Assessment (IRA) in the Lemhi, Pahsimeroi, and Upper Salmon (Sawtooth Valley) watersheds. This initial pahse of the project identified the "problem" by spatially quantifying capacity limitations for spring/summer Chinook salmon and summer run steelhead within a geomorphic context across these three watersheds. The second phase, termed the Multiple Reach Assessments (MRA) includes identifying appropriate and focused "solutions" to the identified capacity problems within four valley segments: Upper Lemhi, Lower Lemhi, Lower Pahsimeroi, and Upper Salmon (Decker Flats). To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat, its creation, and its maintenance to inform future rehabilitation actions.
+
+## Objective
+
+Text here...
+
+# Methods
+
+Methods text here...
+
+# Results
+
+Results text here...
+
+# Discussion
+
+Some discussion crap here...
+
+# Literature Cited
+
+Stuff we cite, but nobody ever actually read...
