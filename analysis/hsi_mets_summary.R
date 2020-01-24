@@ -127,7 +127,7 @@ chnk_p = hsi_df %>%
        title = "Chinook salmon") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 chnk_p
-ggsave("output/figures/chnk_hhs.pdf", chnk_p)
+#ggsave("output/figures/chnk_hhs.pdf", chnk_p)
 
 sthd_p = hsi_df %>%
   filter(species == "chnk") %>%
@@ -147,7 +147,7 @@ sthd_p = hsi_df %>%
        title = "Steelhead") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 sthd_p
-ggsave("output/figures/sthd_hhs.pdf", sthd_p)
+#ggsave("output/figures/sthd_hhs.pdf", sthd_p)
 
 ################
 # Both species #
@@ -171,7 +171,7 @@ species_p = hsi_df %>%
   theme(axis.text.x = element_text(angle = -45, vjust = 0)) +
   facet_grid(species ~ .)
 species_p
-ggsave("output/figures/both_species_hhs.pdf", species_p)
+#ggsave("output/figures/both_species_hhs.pdf", species_p)
 
 #############################
 # All scenarios as 6 facets #
@@ -196,7 +196,7 @@ all_scenario_p = hsi_df %>%
   theme(axis.text.x = element_text(angle = -45, vjust = 0, size = 6)) +
   facet_grid(species ~ Scenario)
 all_scenario_p
-ggsave("output/figures/all_scenarios_hhs.pdf", all_scenario_p)
+#ggsave("output/figures/all_scenarios_hhs.pdf", all_scenario_p)
 
 ###########################
 # Plot geomorph summaries #
@@ -211,7 +211,7 @@ tier_p = tier_summary %>%
        fill = "Geomorphic Tier") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 tier_p
-ggsave("output/figures/geomorphic_tiers.pdf", tier_p)
+#ggsave("output/figures/geomorphic_tiers.pdf", tier_p)
 
 # channel units
 cu_p = cu_summary %>%
@@ -223,7 +223,7 @@ cu_p = cu_summary %>%
        fill = "Channel Unit") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 cu_p
-ggsave("output/figures/channel_units.pdf", cu_p)
+#ggsave("output/figures/channel_units.pdf", cu_p)
 
 # geomorph and cu
 geo_p = tier_summary %>%
@@ -241,7 +241,7 @@ geo_p = tier_summary %>%
   theme(axis.text.x = element_text(angle = -45, vjust = 0)) +
   facet_grid(Category ~ .)
 geo_p
-ggsave("output/figures/geomorph_summaries.pdf", geo_p)
+#ggsave("output/figures/geomorph_summaries.pdf", geo_p)
 
 #############################################################
 # Plot species and geomorph summaries together; easy method #
@@ -259,7 +259,7 @@ g = arrangeGrob(species_p  +
                         axis.ticks.x = element_blank()),
                 geo_p,
                 ncol = 1)
-ggsave("output/figures/species_geomorph_summaries.pdf", g)
+#ggsave("output/figures/species_geomorph_summaries.pdf", g)
 
 ###########################
 # Map HHS values on a map #
@@ -299,7 +299,7 @@ all_scenarios_map = hsi_df %>%
   theme_bw() +
   facet_grid(species ~ Scenario)
 all_scenarios_map
-ggsave("output/figures/hhs_map.pdf", all_scenarios_map)
+#ggsave("output/figures/hhs_map.pdf", all_scenarios_map)
 
 ###########################
 # save all plots and maps #
@@ -310,3 +310,4 @@ save(plot_list, file = "output/hsi_plots.RData")
 map_list = lapply(ls(pattern = "\\_map$"), get)
 save(map_list, file = "output/hsi_maps.RData")
 
+# End hsi_mets_summary.R
