@@ -10,7 +10,7 @@
 ## load necessary libraries
 library(tidyverse)
 library(gridExtra)
-#library(ggmap)
+library(ggmap)
 library(sf)
 
 ## read in all of the HSI results

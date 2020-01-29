@@ -100,13 +100,15 @@ for(s in spc) {
         summarise(area_m2 = sum(pix_area),
                   WUA = sum(value),
                   HHS = WUA/area_m2) %>%
-        mutate(species = spc,
+        mutate(watershed = wtsd,
+               species = spc,
                life_stage = ls,
                season = ssn)
       
-      # Write out raw HSI values to a .csv
+      # Write out composite suitability values to a .RData
       hsi_values = hsi_merge %>%
-        mutate(species = spc,
+        mutate(watershed = wtsd,
+               species = spc,
                life_stage = ls,
                season = ssn) %>%
         save(file = paste0("output/hsi_raw/", wtsd, "_", spc, "_", ls, "_", ssn, "_hsi_values.RData"))
