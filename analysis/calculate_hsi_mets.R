@@ -13,33 +13,82 @@ library(tidyverse)
 
 ## Set arguments, for file naming, etc.
 # for a single run
-wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
-spc  = "sthd" # species: either "chnk" or "sthd"
-ls   = "spw"  # life stage: either "juv" or "spw"
-ssn  = "win"  # season: either "sum" or "win"
+wtsd = "upsa" # watershed: either "lemh", "pahs", or "upsa"
+spc  = "chnk" # species: either "chnk" or "sthd"
+ls   = "juv"  # life stage: either "juv" or "spw"
+ssn  = "sum"  # season: either "spring, "sum", or "win"
 
 # to loop over all scenarios
-wtsd = "lemh"
-spc  = c("chnk", "sthd")
-ls   = c("juv", "spw")
-ssn  = c("sum", "win")
+# wtsd = c("lemh", "pahs", "upsa")
+# spc  = c("chnk", "sthd")
+# ls   = c("juv", "spw")
+# ssn  = c("sum", "win")
 
 for(s in spc) {
   for(l in ls) {
     for(n in ssn) {
 
       ## read in depth and velocity rasters
-      if(ssn == "sum") {
-        d_rast <- raster("data/D_Aug_All.tif")
-        v_rast <- raster("data/V_Aug_All.tif")
-      }
-      if(ssn == "win") {
-        d_rast <- raster("data/d_jan_v2.tif")
-        v_rast <- raster("data/d_jan_v2.tif")  
-      }
+      if(wtsd == "lemh") {
+        if(ssn == "spr") {
+          d_rast <- raster("data/d_v_tifs/lemhi/d_jan_v2.tif")
+          v_rast <- raster("data/d_v_tifs/lemhi/v_jan_v2.tif")  
+        }
+        if(ssn == "sum") {
+          d_rast <- raster("data/d_v_tifs/lemhi/D_Aug_All.tif")
+          v_rast <- raster("data/d_v_tifs/lemhi/V_Aug_All.tif")
+        }
+        if(ssn == "win") {
+          d_rast <- raster("data/d_v_tifs/lemhi/d_jan_v2.tif")
+          v_rast <- raster("data/d_v_tifs/lemhi/v_jan_v2.tif")  
+        }
+      } # end upper salmon
+      
+      if(wtsd == "pahs") {
+        if(ssn == "spr") {
+          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_depth.tif")
+          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_velocity.tif")
+        }
+        if(ssn == "sum") {
+          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_depth.tif")
+          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_velocity.tif")
+        }
+        if(ssn == "win") {
+          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_depth.tif")
+          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_velocity.tif")  
+        }
+      } # end pahsimeroi
+      
+      if(wtsd == "upsa") {
+        if(ssn == "spr") {
+          d_rast <- raster("data/d_v_tifs/upper_salmon/US_1pt5year_depth.tif")
+          v_rast <- raster("data/d_v_tifs/upper_salmon/US_1pt5year_velocity.tif")
+        }
+        if(ssn == "sum") {
+          d_rast <- raster("data/d_v_tifs/upper_salmon/US_Summer75_depth.tif")
+          v_rast <- raster("data/d_v_tifs/upper_salmon/US_Summer75_velocity.tif")
+        }
+        if(ssn == "win") {
+          d_rast <- raster("data/d_v_tifs/upper_salmon/US_Winter75_depth.tif")
+          v_rast <- raster("data/d_v_tifs/upper_salmon/US_Winter75_velocity.tif")  
+        }
+      } # end upper salmon
       
       # Read in reach polygons
-      reaches <- st_read("data/geomorph/Lem_Poly_Label.shp")
+      if(wtsd == "lemh") { 
+        reaches <- st_read("data/geomorph/Lem_Poly_Label.shp") 
+      } # end lemhi
+      if(wtsd == "pahs") { 
+        reaches <- st_read("data/geomorph/Pah_Poly_Label.shp") %>%
+          rename(Name = GeoReach) %>%
+          mutate(Name = str_replace(Name, "-", "_"))
+      } # end pahsimeroi
+      if(wtsd == "upsa") { 
+        reaches <- st_read("data/geomorph/US_Poly_Label.shp") %>%
+          select(GeoReach, geometry) %>%
+          rename(Name = GeoReach) %>%
+          mutate(Name = str_replace(Name, "-", "_"))
+      } # end upper salmon
       # plot(reaches)
       
       # Create one object for each reach
