@@ -12,17 +12,17 @@ library(sf)
 library(tidyverse)
 
 ## Set arguments, for file naming, etc.
-
 # for a single run
-# wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
-# spc  = "chnk" # species: either "chnk" or "sthd"
-# ls   = "juv"  # life stage: either "juv" or "spw"
-# ssn  = "sum"  # season: either "sum" or "win"
+wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
+spc  = "sthd" # species: either "chnk" or "sthd"
+ls   = "spw"  # life stage: either "juv" or "spw"
+ssn  = "win"  # season: either "sum" or "win"
 
 # to loop over all scenarios
-spc = c("chnk", "sthd")
-ls  = c("juv", "spw")
-ssn = c("sum", "win")
+wtsd = "lemh"
+spc  = c("chnk", "sthd")
+ls   = c("juv", "spw")
+ssn  = c("sum", "win")
 
 for(s in spc) {
   for(l in ls) {
@@ -54,7 +54,7 @@ for(s in spc) {
       # Calculate suitability insert appropriate function
       d_curve = paste0(spc, "_", ls, "_d")
       v_curve = paste0(spc, "_", ls, "_v")
-      d_suit <- calc(d_rast, get(d_curve)) # FIX THIS TO BE DYNAMIC
+      d_suit <- calc(d_rast, get(d_curve))
       v_suit <- calc(v_rast, get(v_curve)) 
       
       # Write rasters if desired
@@ -105,7 +105,7 @@ for(s in spc) {
                season = ssn)
       
       # Write out raw HSI values to a .csv
-      hsi_merge %>%
+      hsi_values = hsi_merge %>%
         mutate(species = spc,
                life_stage = ls,
                season = ssn) %>%
