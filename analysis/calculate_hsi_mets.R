@@ -58,8 +58,8 @@ for(s in spc) {
       v_suit <- calc(v_rast, get(v_curve)) 
       
       # Write rasters if desired
-      writeRaster(d_suit, paste0("output/hsi/", wtsd, "_", spc, "_", ls, "_", ssn, "_d_suit.tif"), overwrite = T)
-      writeRaster(v_suit, paste0("output/hsi/", wtsd, "_", spc, "_", ls, "_", ssn, "_v_suit.tif"), overwrite = T)
+      writeRaster(d_suit, paste0("output/hsi_tifs/", wtsd, "_", spc, "_", ls, "_", ssn, "_d_suit.tif"), overwrite = T)
+      writeRaster(v_suit, paste0("output/hsi_tifs/", wtsd, "_", spc, "_", ls, "_", ssn, "_v_suit.tif"), overwrite = T)
       
       # Function to calculate composite suitability using geometric mean of depth and velocity
       comp_hsi <- function(r1, r2) {
@@ -69,7 +69,7 @@ for(s in spc) {
       
       # Calculate geometric mean and create a new raster
       comp_suit <- overlay(d_suit, v_suit, fun = comp_hsi)
-      writeRaster(comp_suit, paste0("output/hsi/", wtsd, "_", spc, "_", ls, "_", ssn, "_comp_suit.tif"), overwrite = T)
+      writeRaster(comp_suit, paste0("output/hsi_tifs/", wtsd, "_", spc, "_", ls, "_", ssn, "_comp_suit.tif"), overwrite = T)
       
       # Calculate metrics at reach scale wetted area, WUA, HHS
       # Extract raster values at polygon 'reaches' from each object created using the reaches polygon
@@ -109,7 +109,7 @@ for(s in spc) {
         mutate(species = spc,
                life_stage = ls,
                season = ssn) %>%
-        save(file = paste0("output/hsi_csvs/", wtsd, "_", spc, "_", ls, "_", ssn, "_hsi_values.RData"))
+        save(file = paste0("output/hsi_raw/", wtsd, "_", spc, "_", ls, "_", ssn, "_hsi_values.RData"))
       
       # Write out HSI metrics to .csv
       write.csv(hsi_mets, paste0("output/hsi_csvs/", wtsd, "_", spc, "_", ls, "_", ssn, "_hsi_mets.csv"))
