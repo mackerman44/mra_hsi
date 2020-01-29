@@ -90,10 +90,9 @@ for(s in spc) {
       names(hsi_merge) = c("ID", "value")
       
       # Calculating the HSI metrics
-      pix_area = prod(res(comp_suit)) # first, set the pixel area
-      # for lem the pixels are 1m x 1m = 1sq meter
-      # for pahs, us the pixels are 3' x 3' = 1sq yard
-      
+      if(wtsd == "lemh") { pix_area = prod(res(comp_suit)) } # for lem the pixels are 1m x 1m = 1sq meter
+      if(wtsd == "pahs" | wtsd == "upsa") { pix_area = 0.836127 } # for pahs, us the pixels are 3' x 3' = 1sq yard
+
       hsi_mets = hsi_merge %>%
         mutate(pix_area = pix_area) %>%
         group_by(ID) %>%
