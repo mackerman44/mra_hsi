@@ -14,8 +14,8 @@ library(tidyverse)
 ## Set arguments, for file naming, etc.
 # for a single run
 wtsd = "upsa" # watershed: either "lemh", "pahs", or "upsa"
-spc  = "chnk" # species: either "chnk" or "sthd"
-ls   = "juv"  # life stage: either "juv" or "spw"
+spc  = "sthd" # species: either "chnk" or "sthd"
+ls   = "spw"  # life stage: either "juv" or "spw"
 ssn  = "spr"  # season: either "spr, "sum", or "win"
 
 # to loop over all scenarios
@@ -74,17 +74,17 @@ for(s in spc) {
         }
       } # end upper salmon
       
-      # Read in reach polygons
+      # Read in reach polygons # PROBABLY GOING TO HAVE TO FIX THIS ONE!
       if(wtsd == "lemh") { 
-        reaches <- st_read("data/geomorph/Lem_Poly_Label.shp") 
+        reaches <- st_read("data/geomorph/geo_reaches/LEM_GeoReach2020.shp") 
       } # end lemhi
       if(wtsd == "pahs") { 
-        reaches <- st_read("data/geomorph/Pah_Poly_Label.shp") %>%
+        reaches <- st_read("data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
           rename(Name = GeoReach) %>%
           mutate(Name = str_replace(Name, "-", "_"))
       } # end pahsimeroi
       if(wtsd == "upsa") { 
-        reaches <- st_read("data/geomorph/US_Poly_Label.shp") %>%
+        reaches <- st_read("data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
           select(GeoReach, geometry) %>%
           rename(Name = GeoReach) %>%
           mutate(Name = str_replace(Name, "-", "_"))

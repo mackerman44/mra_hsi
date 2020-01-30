@@ -30,7 +30,7 @@ us_p = us_cs %>%
   geom_boxplot(fill = "cornflowerblue") +
   theme_bw() +
   labs(x = "Geomorphic Reach",
-       y = "Hydraulic Habitat Suitability",
+       y = "Composite Suitability (Depth & Velocity)",
        title = "Chinook Juvenile Summer Rearing")
 us_p
 
@@ -40,9 +40,18 @@ us_p = us_cs %>%
   geom_violin(fill = "cornflowerblue") +
   theme_bw() +
   labs(x = "Geomorphic Reach",
-       y = "Hydraulic Habitat Suitability",
+       y = "Composite Suitability (Depth & Velocity)",
        title = "Chinook Juvenile Summer Rearing")
 us_p
 
 # next, add faceted histogram
-
+us_p = us_cs %>%
+  ggplot(aes(x = value)) +
+  geom_histogram() +
+  theme_bw() +
+  facet_wrap(~ geo_reach, ncol = 4) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       title = "Chinook Juvenile Summer Rearing")
+us_p
+  
