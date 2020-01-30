@@ -16,7 +16,7 @@ library(tidyverse)
 wtsd = "upsa" # watershed: either "lemh", "pahs", or "upsa"
 spc  = "chnk" # species: either "chnk" or "sthd"
 ls   = "juv"  # life stage: either "juv" or "spw"
-ssn  = "sum"  # season: either "spring, "sum", or "win"
+ssn  = "spr"  # season: either "spr, "sum", or "win"
 
 # to loop over all scenarios
 # wtsd = c("lemh", "pahs", "upsa")
