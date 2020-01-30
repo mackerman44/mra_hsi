@@ -11,16 +11,46 @@ library(rgdal)
 library(sf)
 library(tidyverse)
 
-## read in geomorph data with simple, complex, mixed designations
-geo_r_base <- st_read("data/geomorph/LEM_Base_ComplexSimple.shp") 
-geo_r_peak <- st_read("data/geomorph/LEM_Peak_ComplexSimple.shp") 
+## set watershed argument for file naming, etc.
+wtsd = "upsa" # watershed: either "lemh", "pahs", or "upsa"
+
+## read in geomorph tier data with simple, complex, mixed designations
+if(wtsd == "lemh") {
+  geo_r_base <- st_read("data/geomorph/geo_tiers/LEM_Base_ComplexSimple.shp") 
+  geo_r_peak <- st_read("data/geomorph/geo_tiers/LEM_Peak_ComplexSimple.shp") 
+} # end lemhi
+if(wtsd == "pahs") {
+  geo_r_base <- st_read("data/geomorph/geo_tiers/PAH_Base_ComplexSimple.shp") 
+  geo_r_peak <- st_read("data/geomorph/geo_tiers/PAH_Peak_ComplexSimple.shp") 
+} # end pahsimeroi
+if(wtsd == "upsa") {
+  geo_r_base <- st_read("data/geomorph/geo_tiers/US_Base_ComplexSimple.shp") %>%
+    mutate(Length = unclass(st_length(geo_r_base)))
+  geo_r_peak <- st_read("data/geomorph/geo_tiers/US_Peak_ComplexSimple.shp") %>%
+    mutate(Length = unclass(st_length(geo_r_peak)))
+} # end upper salmon
 
 ## merge the above together
 geo_r = rbind(geo_r_base, geo_r_peak)
 
 ## read in the reach polygons
-reach_poly <- st_read("data/geomorph/Lem_Poly_Label.shp") %>%
-  st_transform(crs = crs(geo_r))
+if(wtsd == "lemh") {
+  reach_poly <- st_read("data/geomorph/geo_reaches/Lem_Poly_Label.shp") %>%
+    st_transform(crs = crs(geo_r))
+} # end lemhi
+if(wtsd == "pahs") {
+  reach_poly <- st_read("data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
+    st_transform(crs = crs(geo_r)) %>%
+    rename(Name = GeoReach) %>%
+    mutate(Name = str_replace(Name, "-", "_"))
+} # end pahsimeroi
+if(wtsd == "upsa") {
+  reach_poly <- st_read("data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
+    st_transform(crs = crs(geo_r)) %>%
+    select(GeoReach, geometry) %>%
+    rename(Name = GeoReach) %>%
+    mutate(Name = str_replace(Name, "-", "_"))
+} # end upper salmon
 plot(reach_poly)
 
 # merge geo data and geomorphic reach polygons
@@ -42,12 +72,12 @@ tier_summary = geo_merge %>%
   mutate(p_Geo_Tier = Length_m / sum(Length_m))
 
 # summary of channel units: caluclate the length by channel unit within each geomorphic reach and
-# then convert to proportions
-cu_summary = geo_merge %>%
-  dplyr::select(Name, ChanUnits, Length_m) %>%
-  group_by(Name, ChanUnits) %>%
-  summarise(Length_m = sum(Length_m)) %>%
-  mutate(p_ChanUnit = Length_m / sum(Length_m))
+# then convert to proportions; Sam and Rob say this data is junk
+# cu_summary = geo_merge %>%
+#   dplyr::select(Name, ChanUnits, Length_m) %>%
+#   group_by(Name, ChanUnits) %>%
+#   summarise(Length_m = sum(Length_m)) %>%
+#   mutate(p_ChanUnit = Length_m / sum(Length_m))
 
 # save geomorph summaries
-save(tier_summary, cu_summary, file = "output/geomorph/geomorph_summary.RData")
+save(tier_summary, file = paste0("output/geomorph/", wtsd, "_geomorph_summary.RData"))
