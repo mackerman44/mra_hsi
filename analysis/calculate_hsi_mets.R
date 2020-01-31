@@ -13,10 +13,10 @@ library(tidyverse)
 
 ## Set arguments, for file naming, etc.
 # for a single run
-wtsd = "upsa" # watershed: either "lemh", "pahs", or "upsa"
+wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
 spc  = "sthd" # species: either "chnk" or "sthd"
-ls   = "spw"  # life stage: either "juv" or "spw"
-ssn  = "spr"  # season: either "spr, "sum", or "win"
+ls   = "juv"  # life stage: either "juv" or "spw"
+ssn  = "win"  # season: either "spr, "sum", or "win"
 
 # to loop over all scenarios
 # wtsd = c("lemh", "pahs", "upsa")
@@ -49,13 +49,13 @@ for(s in spc) {
           d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_depth.tif")
           v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_velocity.tif")
         }
-        if(ssn == "sum") {
-          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_depth.tif")
-          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_velocity.tif")
+        if(ssn == "sum") { # still waiting on these .tifs from Sam
+          #d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_depth.tif")
+          #v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_velocity.tif")
         }
         if(ssn == "win") {
-          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_depth.tif")
-          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_1pt5year_velocity.tif")  
+          d_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_depth.tif")
+          v_rast <- raster("data/d_v_tifs/pahsimeroi/Pah_WLow_velocity.tif")  
         }
       } # end pahsimeroi
       
@@ -74,9 +74,9 @@ for(s in spc) {
         }
       } # end upper salmon
       
-      # Read in reach polygons # PROBABLY GOING TO HAVE TO FIX THIS ONE!
+      # Read in reach polygons
       if(wtsd == "lemh") { 
-        reaches <- st_read("data/geomorph/geo_reaches/LEM_GeoReach2020.shp") 
+        reaches <- st_read("data/geomorph/geo_reaches/Lem_Poly_Label.shp") 
       } # end lemhi
       if(wtsd == "pahs") { 
         reaches <- st_read("data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
