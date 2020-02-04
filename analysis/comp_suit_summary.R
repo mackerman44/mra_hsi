@@ -40,18 +40,58 @@ ul_cs = all_comp_suits %>%
                            `spw_spr` = "Adult Spawning"))
 
 # violin plot
+# ul_vplot = ul_cs %>%
+#   ggplot(aes(x = geo_reach, y = value)) +
+#   geom_violin(fill = "cornflowerblue",
+#               draw_quantiles = c(0.5)) +
+#   # geom_boxplot(fill = "cornflowerblue") +
+#   theme_bw() +
+#   facet_wrap(species ~ scenario) +
+#   labs(x = "Geomorphic Reach",
+#        y = "Composite Suitability (Depth & Velocity",
+#        title = "Upper Lemhi")
+# ul_vplot
+
 ul_vplot = ul_cs %>%
-  ggplot(aes(x = geo_reach, y = value)) +
-  geom_violin(fill = "cornflowerblue") +
+  ggplot(aes(x = geo_reach, 
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  # geom_boxplot(fill = "cornflowerblue") +
   theme_bw() +
-  facet_wrap(species ~ scenario) +
+  facet_wrap(~ species,
+             nrow = 2) +
   labs(x = "Geomorphic Reach",
        y = "Composite Suitability (Depth & Velocity",
        title = "Upper Lemhi")
-ul_vplot
 
-theme(axis.text.x = element_text(angle = -45, vjust = 0),
-      plot.title = element_text(hjust = 0.025, vjust = -8))
+# geomorphic tiers
+## read in the geomorph summary
+load("output/geomorph/lemh_geomorph_summary.RData")
+tier_p = tier_summary %>%
+  filter(Name %in% unique(ul_cs$geo_reach)) %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier)",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+tier_p
+
+library(ggpubr)
+ggarrange(plotlist = list(ul_vplot +
+                            theme(axis.text.x = element_blank(),
+                                  legend.position = 'top') +
+                            labs(x = NULL),
+                            tier_p +
+                            theme(legend.position = "bottom")),
+          nrow = 2,
+          ncol = 1,
+          heights = c(2, 1.5))
 
 us_p = us_cs %>% 
   ggplot(aes(x = geo_reach, y = value)) +
