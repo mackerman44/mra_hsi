@@ -191,7 +191,84 @@ ll_cs_map = ll_cs %>%
 ll_cs_map
 ggsave("output/figures/ll_cs_map.pdf", ll_cs_map)  
 
+##############
+# PAHSIMEROI #
+##############
+# get upper lemhi data
+ph_cs = all_comp_suits %>%
+  filter(watershed == "pahs") %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
 
+# the violin plot
+ph_vplot = ph_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       fill = "Scenario",
+       title = "Pahsimeroi") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+ph_vplot
+
+# plot of geomorphic tier data
+load("output/geomorph/pahs_geomorph_summary.RData")
+ph_tier_p = tier_summary %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+ph_tier_p
+
+# merge the violin and geomorphic tier plot
+ph_p = ggarrange(plotlist = list(ph_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 ph_tier_p +
+                                   theme(legend.position = "bottom")),
+                 nrow = 2,
+                 ncol = 1,
+                 heights = c(2, 1.25))
+ph_p
+ggsave("output/figures/ph_cs_plot.pdf", ph_p)
+
+# map by scenario
+ph_cs_map = ph_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  #scale_fill_viridis_c(option = "magma") +
+  #scale_fill_continuous(low = "blue", high = "red") +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+ph_cs_map
+ggsave("output/figures/ph_cs_map.pdf", ph_cs_map)  
 
 
 
