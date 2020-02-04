@@ -12,27 +12,22 @@ library(sf)
 library(tidyverse)
 
 ## Set arguments, for file naming, etc.
-# for a single run
+# a single run
 wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
 spc  = "sthd" # species: either "chnk" or "sthd"
 ls   = "juv"  # life stage: either "juv" or "spw"
 ssn  = "win"  # season: either "spr, "sum", or "win"
 
-# to loop over all scenarios
-# wtsd = c("lemh", "pahs", "upsa")
-# spc  = c("chnk", "sthd")
-# ls   = c("juv", "spw")
-# ssn  = c("sum", "win")
+# to loop over scenarios (e.g.)
+# watersheds = c("lemh", "pahs", "upsa") 
+# species  = c("chnk", "sthd")        
+# life_stages   = c("juv", "spw")
+# seasons  = c("sum", "win")
 
-######################################################################################################
-# NOTE: To make this script loop over scenarios, would need to change the vector names within the body 
-# of the loop to its corresponding counter e.g., change 'wtsd' within code to 'w' and so on each for 
-# wtsd, spc, ls, and ssn. 
-######################################################################################################
-for(w in wtsd) {
-  for(s in spc) {
-    for(l in ls) {
-      for(n in ssn) {
+for(wtsd in watersheds) {
+  for(spc in species) {
+    for(ls in life_stages) {
+      for(ssn in seasons) {
   
         ## read in depth and velocity rasters
         if(wtsd == "lemh") {
