@@ -110,6 +110,7 @@ ggsave("output/figures/ul_cs_map.pdf", ul_cs_map)
 #####################################
 # LOWER LEMHI: HAYDEN TO CONFLUENCE #
 #####################################
+# geo reaches in the lower lemhi
 ll_geos = c("GR_09", "GR_10", "GR_11", "GR_12",
             "GR_13", "GR_14", "GR_15", "GR_16")
 
@@ -194,7 +195,7 @@ ggsave("output/figures/ll_cs_map.pdf", ll_cs_map)
 ##############
 # PAHSIMEROI #
 ##############
-# get upper lemhi data
+# get pahsimeroi data
 ph_cs = all_comp_suits %>%
   filter(watershed == "pahs") %>%
   unite(scenario, life_stage, season, sep = "_") %>%
@@ -254,6 +255,8 @@ ph_cs_map = ph_cs %>%
             median = median(value),
             n = n()) %>%
   left_join(st_read("data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
+              rename(Name = GeoReach) %>%
+              mutate(Name = str_replace(Name, "-", "_")) %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
@@ -270,48 +273,86 @@ ph_cs_map = ph_cs %>%
 ph_cs_map
 ggsave("output/figures/ph_cs_map.pdf", ph_cs_map)  
 
-
-
-
-
-
-
-#############################
-# SOME UPPER SALMON TESTING #
-#############################
-# upper salmon, chinook, juvenile, summer
+################
+# UPPER SALMON #
+################
+# get upper salmon data
 us_cs = all_comp_suits %>%
-  filter(watershed == "upsa",
-         season == "sum")
+  filter(watershed == "upsa") %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_spr` = "Juvenile Spring Rearing",
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
 
-# boxplot
-us_p = us_cs %>% 
-  ggplot(aes(x = geo_reach, y = value)) +
-  geom_boxplot(fill = "cornflowerblue") +
+# the violin plot
+us_vplot = us_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
   theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
   labs(x = "Geomorphic Reach",
        y = "Composite Suitability (Depth & Velocity)",
-       title = "Chinook Juvenile Summer Rearing")
-us_p
+       fill = "Scenario",
+       title = "Upper Salmon") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+us_vplot
 
-# violin plot
-us_p = us_cs %>% 
-  ggplot(aes(x = geo_reach, y = value)) +
-  geom_violin(fill = "cornflowerblue") +
+# plot of geomorphic tier data
+load("output/geomorph/upsa_geomorph_summary.RData")
+us_tier_p = tier_summary %>%
+  filter(!Name == "GR_NA") %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
   theme_bw() +
   labs(x = "Geomorphic Reach",
-       y = "Composite Suitability (Depth & Velocity)",
-       title = "Chinook Juvenile Summer Rearing")
-us_p
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+us_tier_p
 
-# next, add faceted histogram
-us_p = us_cs %>%
-  ggplot(aes(x = value)) +
-  geom_histogram() +
-  theme_bw() +
-  facet_wrap(~ geo_reach, ncol = 4) +
-  labs(x = "Geomorphic Reach",
-       y = "Composite Suitability (Depth & Velocity)",
-       title = "Chinook Juvenile Summer Rearing")
+# merge the violin and geomorphic tier plot
+us_p = ggarrange(plotlist = list(us_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 us_tier_p +
+                                   theme(legend.position = "bottom")),
+                 nrow = 2,
+                 ncol = 1,
+                 heights = c(2, 1.25))
 us_p
-  
+ggsave("output/figures/us_cs_plot.pdf", us_p)
+
+# map by scenario
+us_cs_map = us_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
+              select(GeoReach, geometry) %>%
+              rename(Name = GeoReach) %>%
+              mutate(Name = str_replace(Name, "-", "_")) %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  #scale_fill_viridis_c(option = "magma") +
+  #scale_fill_continuous(low = "blue", high = "red") +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+us_cs_map
+ggsave("output/figures/us_cs_map.pdf", us_cs_map)  
