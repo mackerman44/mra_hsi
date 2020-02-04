@@ -23,7 +23,7 @@ hsi_df = sapply(hsi_outputs, read_csv, simplify = F) %>%
   dplyr::select(species, life_stage, season, geo_reach, everything())
 
 ## read in the geomorph summary
-load("output/geomorph/geomorph_summary.RData")
+load("output/geomorph/lemh_geomorph_summary.RData")
 
 ##################################
 # Plot HHS for 1 Model at a time #
@@ -300,7 +300,7 @@ ggsave("output/figures/species_geomorph_summaries.pdf", g)
 # Map HHS values on a map #
 ###########################
 # for a single scenario
-chnk_juv_sum_map <- st_read("data/geomorph/Lem_Poly_Label.shp") %>%
+chnk_juv_sum_map <- st_read("data/geomorph/geo_reaches/Lem_Poly_Label.shp") %>%
   mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))) %>%
   left_join(hsi_df %>%
               filter(species == "chnk",
