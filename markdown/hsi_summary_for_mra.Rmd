@@ -23,14 +23,44 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
+  bookdown::word_document2: 
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks.lua
+    - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
 institute:
 - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
 ---
 
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# load knitr for markdown
+library(knitr)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+# load packages for analysis
+library(tidyverse)
+library(ggpubr)
+library(sf)
+```
+
 # Introduction
 
-The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analyses in support of future project identification, prioritization, and design in the Upper Salmon Subbasin, Idaho. The biologic and geomorphic analyses are being lead by Biomark Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Past efforts from the team resulted in the development of a watershed-scale Integrated Rehabilitation Assessment (IRA) in the Lemhi, Pahsimeroi, and Upper Salmon (Sawtooth Valley) watersheds. This initial pahse of the project identified the "problem" by spatially quantifying capacity limitations for spring/summer Chinook salmon and summer run steelhead within a geomorphic context across these three watersheds. The second phase, termed the Multiple Reach Assessments (MRA) includes identifying appropriate and focused "solutions" to the identified capacity problems within four valley segments: Upper Lemhi, Lower Lemhi, Lower Pahsimeroi, and Upper Salmon (Decker Flats). To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat, its creation, and its maintenance to inform future rehabilitation actions.
+The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analyses in support of future project identification, prioritization, and design in the Upper Salmon Subbasin, Idaho. The biologic and geomorphic analyses are being lead by Biomark Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Past efforts from the team resulted in the development of a watershed-scale Integrated Rehabilitation Assessment (IRA) in the Lemhi, Pahsimeroi, and Upper Salmon (Sawtooth Valley) watersheds. This initial phase of the project identified the "problem" by spatially quantifying capacity limitations for spring/summer Chinook salmon and summer run steelhead within a geomorphic context across these three watersheds. The second phase, termed the Multiple Reach Assessments (MRA), includes identifying appropriate and focused "solutions" to the identified capacity problems within four valley segments: Upper Lemhi, Lower Lemhi, Lower Pahsimeroi, and Upper Salmon (Decker Flats). To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat, its creation, and its maintenance to inform future rehabilitation actions.
 
 ## Objective
 
@@ -38,11 +68,390 @@ Text here...
 
 # Methods
 
-Methods text here...
+## Habitat Suitability
+
+```{r hsi-curves}
+hsi_df = read_csv("../data/hsi_curves/maret_hsi_curves_for_r.csv")
+```
+
+### Chinook salmon
+```{r chnk-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for Chinook salmon from Maret et al. (2006)."}
+# chinook hsi curves
+chnk_hsi = hsi_df %>%
+  filter(species == "Chinook") %>%
+  ggplot(aes(x = value_m, y = si)) +
+  geom_line(color = "royalblue3", size = 1.5) +
+  coord_cartesian(xlim = c(0,2)) +
+  theme_bw() +
+  facet_grid(variable ~ life_stage) +
+  labs(x = "Value (m | m/s)",
+       y = "Suitability Index",
+       title = "Chinook salmon")
+chnk_hsi
+ggsave("../output/figures/chnk_hsi_curve.pdf", chnk_hsi)
+```
+
+### Steelhead
+```{r sthd-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for steelhead from Maret et al. (2006)."}
+sthd_hsi = hsi_df %>%
+  filter(species == "Steelhead") %>%
+  ggplot(aes(x = value_m, y = si)) +
+  geom_line(color = "royalblue3", size = 1.5) +
+  coord_cartesian(xlim = c(0,2)) +
+  theme_bw() +
+  facet_grid(variable ~ life_stage) +
+  labs(x = "Value (m | m/s)",
+       y = "Suitability Index",
+       title = "Steelhead")
+sthd_hsi
+ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
+```
 
 # Results
 
+```{r comp-suit-data}
+raw_outputs = list.files(path = "../output/hsi_raw/", pattern = "*.RData", full.names = T)
+all_comp_suits = sapply(raw_outputs, function(x) mget(load(x)), simplify = T) %>%
+  bind_rows() %>%
+  mutate(geo_reach = paste0("GR_", str_pad(sub(".*_", "", ID), 2, pad = "0"))) %>%
+  dplyr::select(-ID) %>%
+  mutate(species = recode(species,
+                          `chnk` = "Chinook",
+                          `sthd` = "Steelhead"))
+```
+
 Results text here...
+
+## Upper Lemhi
+
+```{r ul-plot, fig.height = 7, fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Upper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
+# the geo reaches within the upper lemhi
+ul_geos = c("GR_01", "GR_02", "GR_03", "GR_04",
+            "GR_05", "GR_06", "GR_07", "GR_08")
+
+# get upper lemhi data
+ul_cs = all_comp_suits %>%
+  filter(watershed == "lemh") %>%
+  filter(geo_reach %in% ul_geos) %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
+
+# the violin plot
+ul_vplot = ul_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       fill = "Scenario",
+       title = "Upper Lemhi") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# plot of geomorphic tier data
+load("../output/geomorph/lemh_geomorph_summary.RData")
+ul_tier_p = tier_summary %>%
+  filter(Name %in% ul_geos) %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# merge the violin and geomorphic tier plot
+ul_p = ggarrange(plotlist = list(ul_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 ul_tier_p +
+                                   theme(legend.position = "bottom")),
+          nrow = 2,
+          ncol = 1,
+          heights = c(2, 1.25))
+ul_p
+ggsave("../output/figures/ul_cs_plot.pdf", ul_p)
+```
+
+```{r ul-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Lemhi valley segment."}
+# map by scenario
+ul_cs_map = ul_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("../data/geomorph/geo_reaches/Lem_Poly_Label.shp") %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+ul_cs_map
+ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
+```
+
+## Lower Lemhi
+
+```{r ll-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lpper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
+# geo reaches in the lower lemhi
+ll_geos = c("GR_09", "GR_10", "GR_11", "GR_12",
+            "GR_13", "GR_14", "GR_15", "GR_16")
+
+# get lower lemhi data
+ll_cs = all_comp_suits %>%
+  filter(watershed == "lemh") %>%
+  filter(geo_reach %in% ll_geos) %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
+
+# the violin plot
+ll_vplot = ll_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       fill = "Scenario",
+       title = "Lower Lemhi") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# plot of geomorphic tier data
+load("../output/geomorph/lemh_geomorph_summary.RData")
+ll_tier_p = tier_summary %>%
+  filter(Name %in% ll_geos) %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# merge the violin and geomorphic tier plot
+ll_p = ggarrange(plotlist = list(ll_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 ll_tier_p +
+                                   theme(legend.position = "bottom")),
+                 nrow = 2,
+                 ncol = 1,
+                 heights = c(2, 1.25))
+ll_p
+ggsave("../output/figures/ll_cs_plot.pdf", ll_p)
+```
+
+```{r ll-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
+# map by scenario
+ll_cs_map = ll_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("../data/geomorph/geo_reaches/Lem_Poly_Label.shp") %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+ll_cs_map
+ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
+```
+
+## Pahsimeroi
+
+```{r ph-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lower Pahsimeroi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
+# get pahsimeroi data
+ph_cs = all_comp_suits %>%
+  filter(watershed == "pahs") %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
+
+# the violin plot
+ph_vplot = ph_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       fill = "Scenario",
+       title = "Pahsimeroi") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# plot of geomorphic tier data
+load("../output/geomorph/pahs_geomorph_summary.RData")
+ph_tier_p = tier_summary %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# merge the violin and geomorphic tier plot
+ph_p = ggarrange(plotlist = list(ph_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 ph_tier_p +
+                                   theme(legend.position = "bottom")),
+                 nrow = 2,
+                 ncol = 1,
+                 heights = c(2, 1.25))
+ph_p
+ggsave("../output/figures/ph_cs_plot.pdf", ph_p)
+```
+
+```{r ph-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment."}
+# map by scenario
+ph_cs_map = ph_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("../data/geomorph/geo_reaches/Pah_Poly_Label.shp") %>%
+              rename(Name = GeoReach) %>%
+              mutate(Name = str_replace(Name, "-", "_")) %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+ph_cs_map
+ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
+```
+
+## Upper Salmon
+
+```{r us-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Upper Salmon (Decker Flat) valley segment. Results for both Chinook salmon and steelhead and for four lifestages (adult spawning, juvenile spring rearing, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
+# get upper salmon data
+us_cs = all_comp_suits %>%
+  filter(watershed == "upsa") %>%
+  unite(scenario, life_stage, season, sep = "_") %>%
+  mutate(scenario = recode(scenario,
+                           `juv_spr` = "Juvenile Spring Rearing",
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_sum` = "Adult Spawning",
+                           `spw_spr` = "Adult Spawning"))
+
+# the violin plot
+us_vplot = us_cs %>%
+  ggplot(aes(x = geo_reach,
+             y = value,
+             fill = scenario)) +
+  geom_violin(draw_quantiles = c(0.5),
+              scale = "width") +
+  scale_fill_brewer(palette = "Set3") +
+  theme_bw() +
+  facet_wrap(~ species, nrow = 2) +
+  labs(x = "Geomorphic Reach",
+       y = "Composite Suitability (Depth & Velocity)",
+       fill = "Scenario",
+       title = "Upper Salmon") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# plot of geomorphic tier data
+load("../output/geomorph/upsa_geomorph_summary.RData")
+us_tier_p = tier_summary %>%
+  filter(!Name == "GR_NA") %>%
+  ggplot(aes(x = Name, y = p_Geo_Tier, fill = Geo_Tier)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = "p(Geomorphic Tier",
+       fill = "Geomorphic Tier") +
+  scale_fill_brewer(palette = "Set2") +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0))
+
+# merge the violin and geomorphic tier plot
+us_p = ggarrange(plotlist = list(us_vplot +
+                                   theme(axis.text.x = element_blank(),
+                                         legend.position = "top") +
+                                   labs(x = NULL),
+                                 us_tier_p +
+                                   theme(legend.position = "bottom")),
+                 nrow = 2,
+                 ncol = 1,
+                 heights = c(2, 1.25))
+us_p
+ggsave("../output/figures/us_cs_plot.pdf", us_p)
+```
+
+```{r us-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Salmon (Decker Flat) valley segment."}
+# map by scenario
+us_cs_map = us_cs %>%
+  group_by(species, scenario, geo_reach) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            n = n()) %>%
+  left_join(st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
+              select(GeoReach, geometry) %>%
+              rename(Name = GeoReach) %>%
+              mutate(Name = str_replace(Name, "-", "_")) %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+            by = c("geo_reach" = "Name"))  %>%
+  st_as_sf() %>%
+  ggplot(aes(fill = mean)) +
+  geom_sf() +
+  scale_fill_distiller(palette = "Spectral") +
+  theme_bw() +
+  labs(fill = "Mean Composite Suitability") +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        legend.position = "top")
+us_cs_map
+ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
+```
 
 # Discussion
 
