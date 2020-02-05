@@ -12,6 +12,35 @@ library(tidyverse)
 library(ggpubr)
 library(sf)
 
+# plot HSI curves for each species
+hsi_df = read_csv("data/hsi_curves/maret_hsi_curves_for_r.csv")
+
+# chinook hsi curves
+chnk_hsi = hsi_df %>%
+  filter(species == "Chinook") %>%
+  ggplot(aes(x = value_m, y = si)) +
+  geom_line(color = "royalblue3", size = 1.5) +
+  coord_cartesian(xlim = c(0,2)) +
+  theme_bw() +
+  facet_grid(variable ~ life_stage) +
+  labs(x = "Value (m | m/s)",
+       y = "Suitability Index",
+       title = "Chinook salmon")
+chnk_hsi
+
+# steelhead hsi curves
+sthd_hsi = hsi_df %>%
+  filter(species == "Steelhead") %>%
+  ggplot(aes(x = value_m, y = si)) +
+  geom_line(color = "royalblue3", size = 1.5) +
+  coord_cartesian(xlim = c(0,2)) +
+  theme_bw() +
+  facet_grid(variable ~ life_stage) +
+  labs(x = "Value (m | m/s)",
+       y = "Suitability Index",
+       title = "Steelhead")
+sthd_hsi
+
 ## read in all raw composite suitability results and append into one object
 raw_outputs = list.files(path = "output/hsi_raw/", pattern = "*.RData", full.names = T)
 all_comp_suits = sapply(raw_outputs, function(x) mget(load(x)), simplify = T) %>%
