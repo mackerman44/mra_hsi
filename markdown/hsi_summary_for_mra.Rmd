@@ -51,11 +51,14 @@ csl: "../templates/american-fisheries-society.csl"
 # load knitr for markdown
 library(knitr)
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+options(knitr.kable.NA = '-')
+options(knitr.table.format = "pandoc")
 
 # load packages for analysis
 library(tidyverse)
 library(ggpubr)
 library(sf)
+library(readxl)
 ```
 
 # Introduction
@@ -75,6 +78,9 @@ hsi_df = read_csv("../data/hsi_curves/maret_hsi_curves_for_r.csv")
 ```
 
 ### Chinook salmon
+
+Figure \@ref(fig:chnk-hsi) reference here
+
 ```{r chnk-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for Chinook salmon from Maret et al. (2006)."}
 # chinook hsi curves
 chnk_hsi = hsi_df %>%
@@ -92,6 +98,9 @@ ggsave("../output/figures/chnk_hsi_curve.pdf", chnk_hsi)
 ```
 
 ### Steelhead
+
+Figure \@ref(fig:sthd-hsi) reference here
+
 ```{r sthd-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for steelhead from Maret et al. (2006)."}
 sthd_hsi = hsi_df %>%
   filter(species == "Steelhead") %>%
@@ -105,6 +114,17 @@ sthd_hsi = hsi_df %>%
        title = "Steelhead")
 sthd_hsi
 ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
+```
+
+## Scenarios
+
+And finally, I'll reference Table \@ref(tab:scenarios-tab) here...
+
+```{r scenarios-tab}
+scenarios_tab = read_excel("../analysis/scenarios_to_run.xlsx") %>%
+  select(- `Date Completed`) %>%
+  kable(align = 'c', caption = "Scenarios for which we evaluated the composite suitability (depth & velocity) within geomorphic reaches including the corresponding depth and velocity rasters used for each scenario.")
+scenarios_tab
 ```
 
 # Results
@@ -123,6 +143,8 @@ all_comp_suits = sapply(raw_outputs, function(x) mget(load(x)), simplify = T) %>
 Results text here...
 
 ## Upper Lemhi
+
+Figure \@ref(fig:ul-plot) reference here
 
 ```{r ul-plot, fig.height = 7, fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Upper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # the geo reaches within the upper lemhi
@@ -183,6 +205,8 @@ ul_p
 ggsave("../output/figures/ul_cs_plot.pdf", ul_p)
 ```
 
+Figure \@ref(fig:ul-map) reference here
+
 ```{r ul-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Lemhi valley segment."}
 # map by scenario
 ul_cs_map = ul_cs %>%
@@ -207,6 +231,8 @@ ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
 ```
 
 ## Lower Lemhi
+
+Figure \@ref(fig:ll-plot) reference here
 
 ```{r ll-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lpper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # geo reaches in the lower lemhi
@@ -267,6 +293,8 @@ ll_p
 ggsave("../output/figures/ll_cs_plot.pdf", ll_p)
 ```
 
+Figure \@ref(fig:ll-map) reference here
+
 ```{r ll-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
 # map by scenario
 ll_cs_map = ll_cs %>%
@@ -291,6 +319,8 @@ ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
 ```
 
 ## Pahsimeroi
+
+Figure \@ref(fig:ph-plot) reference here
 
 ```{r ph-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lower Pahsimeroi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # get pahsimeroi data
@@ -345,6 +375,8 @@ ph_p
 ggsave("../output/figures/ph_cs_plot.pdf", ph_p)
 ```
 
+Figure \@ref(fig:ph-map) reference here
+
 ```{r ph-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment."}
 # map by scenario
 ph_cs_map = ph_cs %>%
@@ -371,6 +403,8 @@ ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
 ```
 
 ## Upper Salmon
+
+Figure \@ref(fig:us-plot) reference here
 
 ```{r us-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Upper Salmon (Decker Flat) valley segment. Results for both Chinook salmon and steelhead and for four lifestages (adult spawning, juvenile spring rearing, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # get upper salmon data
@@ -426,6 +460,8 @@ us_p = ggarrange(plotlist = list(us_vplot +
 us_p
 ggsave("../output/figures/us_cs_plot.pdf", us_p)
 ```
+
+Figure \@ref(fig:us-map) reference here
 
 ```{r us-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Salmon (Decker Flat) valley segment."}
 # map by scenario
