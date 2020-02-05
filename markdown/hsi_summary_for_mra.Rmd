@@ -233,6 +233,8 @@ ul_cs_map = ul_cs %>%
   labs(fill = "Mean Composite Suitability") +
   facet_grid(species ~ scenario) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         legend.position = "top")
 ul_cs_map
 ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
@@ -325,6 +327,8 @@ ll_cs_map = ll_cs %>%
   labs(fill = "Mean Composite Suitability") +
   facet_grid(species ~ scenario) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         legend.position = "top")
 ll_cs_map
 ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
@@ -413,6 +417,8 @@ ph_cs_map = ph_cs %>%
   labs(fill = "Mean Composite Suitability") +
   facet_grid(species ~ scenario) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         legend.position = "top")
 ph_cs_map
 ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
@@ -504,6 +510,8 @@ us_cs_map = us_cs %>%
   labs(fill = "Mean Composite Suitability") +
   facet_grid(species ~ scenario) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
         legend.position = "top")
 us_cs_map
 ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
