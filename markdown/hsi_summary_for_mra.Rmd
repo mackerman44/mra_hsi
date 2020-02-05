@@ -192,7 +192,7 @@ ul_tier_p = tier_summary %>%
   labs(x = "Geomorphic Reach",
        y = "p(Geomorphic Tier",
        fill = "Geomorphic Tier") +
-  scale_fill_brewer(palette = "Set2") +
+  scale_fill_brewer(palette = "Accent") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 
 # merge the violin and geomorphic tier plot
@@ -222,8 +222,12 @@ ul_cs_map = ul_cs %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
-  ggplot(aes(fill = mean)) +
-  geom_sf() +
+  ggplot() +
+  geom_sf(aes(fill = mean)) +
+  geom_sf_label(aes(label = str_remove(geo_reach, "^GR_")),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   scale_fill_distiller(palette = "Spectral") +
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
@@ -280,7 +284,7 @@ ll_tier_p = tier_summary %>%
   labs(x = "Geomorphic Reach",
        y = "p(Geomorphic Tier",
        fill = "Geomorphic Tier") +
-  scale_fill_brewer(palette = "Set2") +
+  scale_fill_brewer(palette = "Accent") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 
 # merge the violin and geomorphic tier plot
@@ -310,8 +314,12 @@ ll_cs_map = ll_cs %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
-  ggplot(aes(fill = mean)) +
-  geom_sf() +
+  ggplot() +
+  geom_sf(aes(fill = mean)) +
+  geom_sf_label(aes(label = str_remove(geo_reach, "^GR_")),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   scale_fill_distiller(palette = "Spectral") +
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
@@ -362,7 +370,7 @@ ph_tier_p = tier_summary %>%
   labs(x = "Geomorphic Reach",
        y = "p(Geomorphic Tier",
        fill = "Geomorphic Tier") +
-  scale_fill_brewer(palette = "Set2") +
+  scale_fill_brewer(palette = "Accent") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 
 # merge the violin and geomorphic tier plot
@@ -394,8 +402,12 @@ ph_cs_map = ph_cs %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
-  ggplot(aes(fill = mean)) +
-  geom_sf() +
+  ggplot() +
+  geom_sf(aes(fill = mean)) +
+  geom_sf_label(aes(label = str_remove(geo_reach, "^GR_")),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +  
   scale_fill_distiller(palette = "Spectral") +
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
@@ -448,7 +460,7 @@ us_tier_p = tier_summary %>%
   labs(x = "Geomorphic Reach",
        y = "p(Geomorphic Tier",
        fill = "Geomorphic Tier") +
-  scale_fill_brewer(palette = "Set2") +
+  scale_fill_brewer(palette = "Accent") +
   theme(axis.text.x = element_text(angle = -45, vjust = 0))
 
 # merge the violin and geomorphic tier plot
@@ -481,8 +493,12 @@ us_cs_map = us_cs %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
-  ggplot(aes(fill = mean)) +
-  geom_sf() +
+  ggplot() +
+  geom_sf(aes(fill = mean)) +
+  geom_sf_label(aes(label = str_remove(geo_reach, "^GR_")),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   scale_fill_distiller(palette = "Spectral") +
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
