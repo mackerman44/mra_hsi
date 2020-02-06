@@ -492,6 +492,10 @@ us_cs_map = us_cs %>%
   summarise(mean = mean(value),
             median = median(value),
             n = n()) %>%
+  ungroup() %>%
+  mutate(scenario = str_replace(scenario,
+                                '^Juvenile ',
+                                'Juvenile\n')) %>%
   left_join(st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
               select(GeoReach, geometry) %>%
               rename(Name = GeoReach) %>%
