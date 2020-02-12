@@ -75,7 +75,7 @@ Evaluate the composite suitability of geomorphic reaches in the upper Lemhi, low
 
 # Methods
 
-Composite suitability estimates were calculated as the geometric mean of depth and velocity suitability estimates. 
+We provide methods for calculating the composite (depth & velocity) suitability, by geomorphic reach, for a single scenario including steps to visualize results. A given scenario includes a watershed, species, life stage, and season combination. Here, we provide detailed methods for Scenario 1 in Table \@ref(tab:scenarios-tab): Lemhi River, Chinook salmon, juvenile summer (parr) rearing. The same methods were then applied across all scenarios except each with differing depth and velocity suitability curves (depending on species and adult versus juvenile) or differing input depth and velocity rasters (depending on season). All scenarios evaluated are summarized in Table \@ref(tab:scenarios-tab).
 
 ## Habitat Suitability
 
