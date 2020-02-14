@@ -14,9 +14,9 @@ library(tidyverse)
 ## Set arguments, for file naming, etc.
 # a single run
 wtsd = "lemh" # watershed: either "lemh", "pahs", or "upsa"
-spc  = "sthd" # species: either "chnk" or "sthd"
+spc  = "chnk" # species: either "chnk" or "sthd"
 ls   = "juv"  # life stage: either "juv" or "spw"
-ssn  = "win"  # season: either "spr, "sum", or "win"
+ssn  = "sum"  # season: either "spr, "sum", or "win"
 
 # to loop over scenarios (e.g.)
 # watersheds = c("lemh", "pahs", "upsa") 
