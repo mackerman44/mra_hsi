@@ -12,15 +12,6 @@ author:
     email: kevin.see@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::pdf_document2:
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks2.lua
-    - --lua-filter=../templates/pagebreak.lua
-    fig_height: 6
-    fig_width: 8
-    includes:
-      in_header: "../templates/header_ABS.tex"
   bookdown::html_document2:
     theme: simplex
     toc: yes
@@ -32,6 +23,15 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
   bookdown::word_document2: 
     fig_caption: yes
     fig_height: 4
@@ -134,6 +134,26 @@ sthd_hsi = hsi_df %>%
        title = "Steelhead")
 sthd_hsi
 ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
+```
+
+```{r hsi-p-prep}
+## read in all of the HSI results
+hsi_outputs = list.files(path = "../output/hsi_csvs/", pattern = "*.csv", full.names = T)
+hsi_p = sapply(hsi_outputs, read_csv, simplify = F) %>%
+  bind_rows(.id = "id") %>%
+  dplyr::select(-c(id, X1)) %>%
+  mutate(geo_reach = paste0("GR_", str_pad(sub(".*_", "", ID), 2, pad = "0"))) %>%
+  dplyr::select(-ID) %>%
+  dplyr::select(species, life_stage, season, geo_reach, everything()) %>%
+  mutate(scenario = paste(life_stage, season, sep = "_")) %>%
+  mutate(species = recode(species,
+                          `chnk` = "Chinook",
+                          `sthd` = "Steelhead")) %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_spr` = "Adult Spawning",
+                           `spw_sum` = "Adult Spawning"))
 ```
 
 ## Scenarios
@@ -257,11 +277,28 @@ ul_cs_map
 ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
 ```
 
+```{r ul-hsi-p, fig.cap = "draft wua and hhs plot for Richie"}
+# draft of hsi plot that Richie suggested
+coeff = .00001
+lemh_hsi_p = hsi_p %>%
+  filter(watershed == "lemh") %>%
+  ggplot(aes(x = geo_reach)) +
+  geom_point(aes(y = WUA)) +
+  geom_bar(aes(y = HHS / coeff), stat = "identity", 
+           alpha = 0.5, fill = "cornflowerblue") +
+  scale_y_continuous(sec.axis = sec_axis(~. * coeff,
+                                         name = "HHS")) +
+  theme_bw() +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 1, size = 7))
+lemh_hsi_p
+```
+
 ## Lower Lemhi
 
 Figure \@ref(fig:ll-plot) summarizes the composite hydraulic suitability within the Lower Lemhi valley segment to support Chinook salmon spawning and juvenile rearing (summer and winter) along with the proportion of each geomorphic reach classified as simple, mixed, or complex. Again, similar to the Upper Lemhi, hydraulic suitability for spawning in the Lower Lemhi is high; similar, suitability for steelhead juvenile rearing is high (i.e., a large number of pixels have a composite suitability near or at 1). Suitability for juvenile Chinook salmon rearing in the Lower Lemhi is low. Worth noting is that reaches with a high proportion classified as simple (e.g., GR_09-11) have a very high proportion of pixels with a suitability at 0; whereas the most complex reach, GR_15, has a much larger proportion of pixels higher in the violin distribution.
 
-```{r ll-plot, fig.height = 7, , fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lpper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
+```{r ll-plot, fig.height = 7, fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Lpper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # geo reaches in the lower lemhi
 ll_geos = c("GR_09", "GR_10", "GR_11", "GR_12",
             "GR_13", "GR_14", "GR_15", "GR_16")

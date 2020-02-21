@@ -314,6 +314,33 @@ all_scenarios_map = hsi_df %>%
 all_scenarios_map
 #ggsave("output/figures/hhs_map.pdf", all_scenarios_map)
 
+##########################################################################
+# add the HHS and nWUA plots facetted by scenario as suggested by Richie #
+##########################################################################
+hsi_p = hsi_df %>%
+  mutate(scenario = paste(life_stage, season, sep = "_")) %>%
+  mutate(species = recode(species,
+                          `chnk` = "Chinook",
+                          `sthd` = "Steelhead")) %>%
+  mutate(scenario = recode(scenario,
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_spr` = "Adult Spawning",
+                           `spw_sum` = "Adult Spawning"))
+coeff = .00001
+lemh_hsi_p = hsi_p %>%
+  filter(watershed == "lemh") %>%
+  ggplot(aes(x = geo_reach)) +
+  geom_point(aes(y = WUA)) +
+  geom_bar(aes(y = HHS / coeff), stat = "identity", 
+           alpha = 0.5, fill = "cornflowerblue") +
+  scale_y_continuous(sec.axis = sec_axis(~. * coeff,
+                                         name = "HHS")) +
+  theme_bw() +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, vjust = 1, size = 7))
+lemh_hsi_p
+
 ###########################
 # save all plots and maps #
 ###########################
