@@ -50,7 +50,8 @@ csl: "../templates/american-fisheries-society.csl"
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 # load knitr for markdown
 library(knitr)
-knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE,
+                      fig.path = "../output/figures/")
 options(knitr.kable.NA = '-')
 options(knitr.table.format = "pandoc")
 
@@ -118,7 +119,7 @@ chnk_hsi = hsi_df %>%
        y = "Suitability Index",
        title = "Chinook salmon")
 chnk_hsi
-ggsave("../output/figures/chnk_hsi_curve.pdf", chnk_hsi)
+#ggsave("../output/figures/chnk_hsi_curve.pdf", chnk_hsi)
 ```
 
 ```{r sthd-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for steelhead from Maret et al. (2006)."}
@@ -133,7 +134,7 @@ sthd_hsi = hsi_df %>%
        y = "Suitability Index",
        title = "Steelhead")
 sthd_hsi
-ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
+#ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
 ```
 
 ```{r hsi-p-prep}
@@ -243,7 +244,7 @@ ul_p = ggarrange(plotlist = list(ul_vplot +
           ncol = 1,
           heights = c(2, 1.25))
 ul_p
-ggsave("../output/figures/ul_cs_plot.pdf", ul_p)
+#ggsave("../output/figures/ul_cs_plot.pdf", ul_p)
 ```
 
 Figure \@ref(fig:ul-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Upper Lemhi valley segment. The map bears a similar story as the violin plot above. Hydraulic suitability for spawning (both species) and for steelhead rearing tends to be high (red) whereas suitability for Chinook salmon rearing tend to be low (blue). 
@@ -274,7 +275,7 @@ ul_cs_map = ul_cs %>%
         axis.title.y = element_blank(),
         legend.position = "top")
 ul_cs_map
-ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
+#ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
 ```
 
 ```{r ul-hsi-p, fig.cap = "draft wua and hhs plot for Richie"}
@@ -354,7 +355,7 @@ ll_p = ggarrange(plotlist = list(ll_vplot +
                  ncol = 1,
                  heights = c(2, 1.25))
 ll_p
-ggsave("../output/figures/ll_cs_plot.pdf", ll_p)
+#ggsave("../output/figures/ll_cs_plot.pdf", ll_p)
 ```
 
 Figure \@ref(fig:ll-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Lower Lemhi valley segment. The Lower Lemhi map shows the same trends as the Upper Lemhi map. Hydraulic suitability for spawning and juvenile steelhead rearing is good; suitability for juvenile Chinook rearing is poor. Note that the upstream simple reaches (GR_09-11) are the deepest blue whereas the 'more' complex GR_15 seems to be more suitable (lighter blue) for the juvenile Chinook rearing.
@@ -385,7 +386,7 @@ ll_cs_map = ll_cs %>%
         axis.title.y = element_blank(),
         legend.position = "top")
 ll_cs_map
-ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
+#ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
 ```
 
 ## Pahsimeroi
@@ -442,7 +443,7 @@ ph_p = ggarrange(plotlist = list(ph_vplot +
                  ncol = 1,
                  heights = c(2, 1.25))
 ph_p
-ggsave("../output/figures/ph_cs_plot.pdf", ph_p)
+#ggsave("../output/figures/ph_cs_plot.pdf", ph_p)
 ```
 
 Figure \@ref(fig:ph-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Pahsimeroi valley segment. The map shows a similar story as the violin plots. Hydraulic suitability for spawning is lower in the Lower Pahsimeroi valley segment than it is in either Lemhi River valley segments, presumably due to increased velocities (again, this would need to be verified by closer inspection of velocity .tifs or suitability values and/or empirical velocity data). Also, suitability for juvenile steelhead rearing is lower than in the Lemhi, at least for GR_08 and GR_09. Suitability for juvenile Chinook rearing remains low.
@@ -475,7 +476,7 @@ ph_cs_map = ph_cs %>%
         axis.title.y = element_blank(),
         legend.position = "top")
 ph_cs_map
-ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
+#ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
 ```
 
 ## Upper Salmon
@@ -534,7 +535,7 @@ us_p = ggarrange(plotlist = list(us_vplot +
                  ncol = 1,
                  heights = c(2, 1.25))
 us_p
-ggsave("../output/figures/us_cs_plot.pdf", us_p)
+#ggsave("../output/figures/us_cs_plot.pdf", us_p)
 ```
 
 Figure \@ref(fig:us-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Upper Salmon valley segment. Spawning suitability appears to be lower in the Upper Salmon than in the Lemhi and Pahsimeroi; however, all reaches still seem to have areas (pixels) with high suitability. Suitability for steelhead rearing appears to be moderate. Finally, although still not high, composite suitability for juvenile Chinook salmon rearing in the Upper Salmon appears to be much greater than in the Lemhi or Pahsimeroi.
@@ -572,7 +573,7 @@ us_cs_map = us_cs %>%
         axis.title.y = element_blank(),
         legend.position = "top")
 us_cs_map
-ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
+#ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
 ```
 
 # Discussion
