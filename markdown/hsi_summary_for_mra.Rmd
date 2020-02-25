@@ -80,7 +80,7 @@ We provide methods for calculating the composite (depth & velocity) suitability,
 
 Detailed methods are as follows:
 
-1. Raster .tifs containing depth and velocity values were imported into R (R Core Team 2017). For the Lemhi River, raster pixels were 1m x 1m. As an example, for the Lemhi River, summer, low-flow scenario rasters were named D_Aug_All.tif and V_Aug_All.tif. Rasters were obtained from a previously funded study in the Lemhi River (insert Tonina et. al. 2018 citation on LiDAR validation)
+1. Raster .tifs containing depth and velocity values were imported into R (R Core Team 2017). For the Lemhi River, raster pixels were 1m x 1m. As an example, for the Lemhi River, summer, low-flow scenario rasters were named D_Aug_All.tif and V_Aug_All.tif. Rasters were obtained from a previously funded study in the Lemhi River (Tonina et al 2018).
 
 2. Import a polygon shapefile delineating the geomorphic reaches as defined in the IRA. The polygon shapefile is used to interrogate the depth and velocity .tifs to determine the geomorphic reach that each pixel falls within.
 
