@@ -12,25 +12,6 @@ author:
     email: kevin.see@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::word_document2: 
-    fig_caption: yes
-    fig_height: 4
-    fig_width: 7
-    toc: yes
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks.lua
-    - --lua-filter=../templates/pagebreak.lua
-    reference_docx: "../templates/ReportTemplate.docx"
-  bookdown::pdf_document2:
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks2.lua
-    - --lua-filter=../templates/pagebreak.lua
-    fig_height: 6
-    fig_width: 8
-    includes:
-      in_header: "../templates/header_ABS.tex"
   bookdown::html_document2:
     theme: simplex
     toc: yes
@@ -42,9 +23,29 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
+  bookdown::word_document2: 
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks.lua
+    - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
 institute:
 - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
+bibliography: references.bib
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
@@ -65,11 +66,11 @@ library(readxl)
 
 # Introduction
 
-The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analyses to support future project identification, prioritization, and inform restoration design in the Upper Salmon Subbasin, Idaho. The biologic and geomorphic analyses are being lead by Biomark Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Past efforts from the team resulted in the development of a watershed-scale Integrated Rehabilitation Assessment (IRA; Idaho OSC Team 2019) in the Lemhi, Pahsimeroi, and Upper Salmon (Sawtooth Valley) watersheds. This initial phase of the project identified, generally, the "problem" by spatially quantifying capacity limitations for spring/summer Chinook salmon and summer run steelhead within a geomorphic context across these three watersheds. The second phase, termed the Multiple Reach Assessments (MRA), includes identifying appropriate and focused "solutions" to the acknowledged capacity problems within four valley segments: Upper Lemhi, Lower Lemhi, Lower Pahsimeroi, and Upper Salmon (Decker Flats). To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat creation and maintenance to inform future rehabilitation actions.
+The Bureau of Reclamation (BOR), Idaho Governor's Office of Species Conservation (OSC), and an interdisciplinary team of partners have assembled an Upper Salmon Assessment Team to complete biologic and geomorphic analyses to support future project identification, prioritization, and inform restoration design in the Upper Salmon Subbasin, Idaho. The biologic and geomorphic analyses are being lead by Biomark Inc. (Biomark) and Rio Applied Science and Engineering (Rio ASE), respectively. Past efforts from the team resulted in the development of a watershed-scale Integrated Rehabilitation Assessment (IRA; @IdOSC2019) in the Lemhi, Pahsimeroi, and Upper Salmon (Sawtooth Valley) watersheds. This initial phase of the project identified, generally, the "problem" by spatially quantifying capacity limitations for spring/summer Chinook salmon and summer run steelhead within a geomorphic context across these three watersheds. The second phase, termed the Multiple Reach Assessments (MRA), includes identifying appropriate and focused "solutions" to the acknowledged capacity problems within four valley segments: Upper Lemhi, Lower Lemhi, Lower Pahsimeroi, and Upper Salmon (Decker Flats). To achieve this goal, the team will collaboratively summarize existing and targeted physical habitat conditions relative to documented habitat needs for specific species and life stages, including discussion of high-quality habitat creation and maintenance to inform future rehabilitation actions.
 
 In the IRA, it was determined that, for Chinook salmon, habitat capacity was limited to support presmolts during winter months, and to a slightly lesser degree, parr during summer months. Habitat was not found to be limiting for adult spawning. For steelhead, habitat capacity was identified as limiting for juvenile rearing, at least in the Pahsimeroi River; again, habitat was not found to be limiting for adult spawning. The available habitat capacity was estimated using quantile regression forest (QRF; IRA Appendix B) whereas habitat requirements were estimated for current escapement and recovery goals using a generalized capacity model (IRA Appendix C).
 
-The goal of this document is to further assess existing conditions and evaluate the hydraulic suitability, particularly depth and velocity, of the four target valley segments to support select life stages of Chinook salmon and steelhead. By comparing depth and velocity suitability curves for Chinook salmon and steelhead, developed specifically for the Salmon River watershed (Maret et al. 2006), to continuous modeled depths and velocities (supported by bathymetric Light Detection and Ranging; LiDAR) available for the four valley segments, we can further our understanding of how habitat, related specifically to hydraulics and the governing morphology, may be limiting recovery of Chinook salmon and steelhead in the Upper Salmon subbasin.  This information can help identify geomorphic reaches where existing depth and velocity may be limiting particular species and life stages, which could prove useful for project prioritization.The incorporation of a multitude of data sources (QRF, publication review, morphological analysis, hydraulic habitat suitability, etc.) allows for a robust assessment of the habitat and limiting factors for target species and life stages.
+The goal of this document is to further assess existing conditions and evaluate the hydraulic suitability, particularly depth and velocity, of the four target valley segments to support select life stages of Chinook salmon and steelhead. By comparing depth and velocity suitability curves for Chinook salmon and steelhead, developed specifically for the Salmon River watershed [@Maret2006], to continuous modeled depths and velocities (supported by bathymetric Light Detection and Ranging; LiDAR) available for the four valley segments, we can further our understanding of how habitat, related specifically to hydraulics and the governing morphology, may be limiting recovery of Chinook salmon and steelhead in the Upper Salmon subbasin.  This information can help identify geomorphic reaches where existing depth and velocity may be limiting particular species and life stages, which could prove useful for project prioritization.The incorporation of a multitude of data sources (QRF, publication review, morphological analysis, hydraulic habitat suitability, etc.) allows for a robust assessment of the habitat and limiting factors for target species and life stages.
 
 ## Objective
 
@@ -81,11 +82,11 @@ We provide methods for calculating the composite (depth & velocity) suitability,
 
 Detailed methods are as follows:
 
-1. Raster .tifs containing depth and velocity values were imported into R (R Core Team 2017). For the Lemhi River, raster pixels were 1m x 1m. As an example, for the Lemhi River, summer, low-flow scenario rasters were named D_Aug_All.tif and V_Aug_All.tif. Rasters were obtained from a previously funded study in the Lemhi River (Tonina et al. 2018), where appropriate discharge volumes for hydraulic analysis were analyzed based on the Lemhi River Base Model (Borden 2016).
+1. Raster .tifs containing depth and velocity values were imported into R [@R2019]. For the Lemhi River, raster pixels were 1m x 1m. As an example, for the Lemhi River, summer, low-flow scenario rasters were named D_Aug_All.tif and V_Aug_All.tif. Rasters were obtained from a previously funded study in the Lemhi River [@Tonina2019], where appropriate discharge volumes for hydraulic analysis were analyzed based on the Lemhi River Base Model [@Borden2016].
 
 2. Import a polygon shapefile delineating the geomorphic reaches as defined in the IRA. The polygon shapefile is used to interrogate the depth and velocity .tifs to determine the geomorphic reach that each depth and velocity pixel falls within.
 
-3. Read in the depth and velocity habitat suitability curves for Chinook salmon and steelhead from Maret et al. 2006. Depth and velocity habitat suitability index (HSI) curves were available for both species for the adult spawning and juvenile rearing life stages. Functions to calculate the suitability for a given depth or velocity are available in the `mra_hsi` repository in the R/ directory. The [Habitat Suitability] section below shows the HSI curves used from Maret et al. (2006).
+3. Read in the depth and velocity habitat suitability curves for Chinook salmon and steelhead from @Maret2006. Depth and velocity habitat suitability index (HSI) curves were available for both species for the adult spawning and juvenile rearing life stages. Functions to calculate the suitability for a given depth or velocity are available in the `mra_hsi` repository in the R/ directory. The [Habitat Suitability] section below shows the HSI curves used from @Maret2006.
 
 4. Use the HSI curves to calculate the depth and velocity suitability for each raster pixel. The result is two new rasters each containing the calculated depth and velocity suitability values, respectively.
 
@@ -95,7 +96,7 @@ Detailed methods are as follows:
 
 7. Write out the composite suitability values and geomorphic reaches for each pixel to a .csv. These results are all stored in the output/hsi_raw/ directory in the `mra_hsi` repository.
 
-8. Calculate wetted area, weighted usable area, and normalized weighted usable area (normalized by the wetted area)  for each species, life stage, and study reach. 
+8. Calculate wetted area, weighted usable area, and normalized weighted usable area (normalized by the wetted area)  for each species, life stage, and study reach. ***How is weighted useable area calculated? Unclear how you moved from composite suitability at the 1mx1m pixel scale to weighted useable area at the reach scale***
 
 Finally, we visualized the composite suitability values by valley segment, species, life stage (adult spawning, juvenile summer rearing, juvenile winter rearing), and geomorphic reach. Violin plots showing the distribution of composite suitability values are provided in the [Results] section. For reference, the proportion of each reach classified as simple, mixed, or complex is also provided. Further, we provide maps showing the mean of composite suitability values by species and life stage for each valley segment, and plots illustrating the weighted usable area and normalized weighted usable area for each individual scenario.
 
@@ -107,7 +108,7 @@ The resulting raster .tifs showing depth, velocity, and composite suitability ar
 hsi_df = read_csv("../data/hsi_curves/maret_hsi_curves_for_r.csv")
 ```
 
-Figures \@ref(fig:chnk-hsi) and \@ref(fig:sthd-hsi) show HSI curves for Chinook salmon and steelhead from Maret et al. (2006), respectively, used the analysis. These curves are used to calculate the depth or velocity suitability value for each pixel within a scenario. The composite suitability for a pixel is then calculated as the geometric mean of those values. As an example, using juvenile Chinook salmon and depth, if a pixel has a depth of 0m, that pixel is assigned a suitability of 0 whereas if the depth is greater than approximately 0.6m it is assigned a suitability of 1; a depth of 0.5m would be assigned a suitability of ~0.7.
+Figures \@ref(fig:chnk-hsi) and \@ref(fig:sthd-hsi) show HSI curves for Chinook salmon and steelhead from @Maret2006, respectively, used the analysis. These curves are used to calculate the depth or velocity suitability value for each pixel within a scenario. The composite suitability for a pixel is then calculated as the geometric mean of those values. As an example, using juvenile Chinook salmon and depth, if a pixel has a depth of 0m, that pixel is assigned a suitability of 0 whereas if the depth is greater than approximately 0.6m it is assigned a suitability of 1; a depth of 0.5m would be assigned a suitability of $\sim$ 0.7.
 
 ```{r chnk-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for Chinook salmon from Maret et al. (2006)."}
 # chinook hsi curves
@@ -189,7 +190,7 @@ Here, we provide a summary of the distribution (as violin plots) and mean (as ma
 
 ## Upper Lemhi
 
-Figure \@ref(fig:ul-plot) summarizes the composite hydraulic suitability within the Upper Lemhi valley segment to support Chinook salmon spawning and juvenile rearing (summer and winter) along with the proportion of each geomorphic reach classified as simple, mixed, or complex. In general, the hydraulic suitability for spawning, for both Chinook salmon and steelhead, is high, with a large number of pixels with a suitability of 1. Hydraulic suitability for steelhead juvenile rearing, during both the summer and winter scenario, also tends to be high in the Upper Lemhi valley segment; whereas suitability for juvenile Chinook salmon rearing is low. Interestingly, geomorphic reach 01, the upstream-most reach starting at Leadore, contains more pixels with a suitability above 0 than all other geomorphic reaches for both summer and winter juvenile rearing.
+Figure \@ref(fig:ul-plot) summarizes the composite hydraulic suitability within the Upper Lemhi valley segment to support Chinook salmon spawning and juvenile rearing (summer and winter) along with the proportion of each geomorphic reach classified as simple, mixed, or complex. In general, the hydraulic suitability for spawning, for both Chinook salmon and steelhead, is high, with a large number of pixels having a suitability of 1. Hydraulic suitability for steelhead juvenile rearing, during both the summer and winter scenarios, also tends to be high in the Upper Lemhi valley segment; whereas suitability for juvenile Chinook salmon rearing is low. Interestingly, geomorphic reach 01, the upstream-most reach starting at Leadore, contains more pixels with a suitability above 0 than all other geomorphic reaches for both summer and winter juvenile rearing.
 
 ```{r ul-plot, fig.height = 7, fig.cap = "Violin plots showing the distribution of composite suitability values (geometric mean of depth and velocity suitability) across geomorphic reaches in the Upper Lemhi valley segment. Results for both Chinook salmon and steelhead and for three lifestages (adult spawning, juvenile summer rearing, juvenile winter rearing) are shown. The bottom panel shows the proportion of each geometric reach classified as simple, mixed, or complex."}
 # the geo reaches within the upper lemhi
@@ -297,6 +298,8 @@ lemh_hsi_p = hsi_p %>%
   theme(axis.text.x = element_text(angle = -45, vjust = 1, size = 7))
 lemh_hsi_p
 ```
+
+***Need better figure caption for Figure 3.3; explain what HHS is***
 
 ## Lower Lemhi
 
@@ -551,9 +554,11 @@ us_cs_map = us_cs %>%
             median = median(value),
             n = n()) %>%
   ungroup() %>%
-  mutate(scenario = str_replace(scenario,
-                                '^Juvenile ',
-                                'Juvenile\n')) %>%
+  mutate(scenario = recode(scenario,
+                           "Adult Spawning" = "Adult\nSpawning",
+                           "Juvenile Spring Rearing" = "Juvenile\nSpring\nRearing",
+                           "Juvenile Summer Rearing" = "Juvenile\nSummer\nRearing",
+                           "Juvenile Winter Rearing" = "Juvenile\nWinter\nRearing")) %>%
   left_join(st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
               select(GeoReach, geometry) %>%
               rename(Name = GeoReach) %>%
@@ -583,17 +588,17 @@ us_cs_map
 
 ## Spawning
 
-Of the three watersheds and four valley segments evaluated, the Pahsimeroi appears to have the lowest suitability for both Chinook and steelhead spawning where the majority of the model domain for reaches GR_08 and GR_09 illustrating a 0 composite suitability, but as you move downstream in the watershed to GR_10, the suitability is much improved. Hydraulic habitat does not appear to be limiting for spawning for Chinook salmon or steelhead within the two Lemhi valley segments analyzed. The Upper Salmon valley segment has mixed suitability results; primarily where there is increasing 'Complex' geomorphic character, the number of suitable grid cells also increases. Reaches GR_04, GR_05, and GR_06 appear to have the lowest quality spawning habitat for both steelhead and Chinook salmon within the Upper Salmon valley segment. It is likely that the decrease in 'Complex' geomorphic character is related to an increase in velocity, resulting in unsuitable spawning due to velocities being too high.  This corroborates the findings in the IRA (Idaho OSC Team 2019) where they found that spawning habitat capacity was not limiting to support contemporary escapement estimates in those areas or reach recovery goals. The results illustrated here provide an additional line of evidence; these valley segments support adequate spawning suitability based on hydraulics (depth, velocity) and spawning conditions do not appear to be limiting population recovery of the two species of interest. Although out of the scope of this document, it may be possible that the incubation or emergence life stages following spawning may or may not be limited by the habitat. Fine sedimentation in the target watersheds and in the Upper Salmon Subbasin as a whole remains a concern as it can reduce oxygenation of eggs and affect hyporheic flow, reducing egg survival.
+Of the three watersheds and four valley segments evaluated, the Pahsimeroi appears to have the lowest suitability for both Chinook and steelhead spawning where the majority of the model domain for reaches GR_08 and GR_09 illustrating a 0 composite suitability, but as you move downstream in the watershed to GR_10, the suitability is much improved. Hydraulic habitat does not appear to be limiting for spawning for Chinook salmon or steelhead within the two Lemhi valley segments analyzed. The Upper Salmon valley segment has mixed suitability results; primarily where there is increasing "complex" geomorphic character, the number of suitable grid cells also increases. Reaches GR_04, GR_05, and GR_06 appear to have the lowest quality spawning habitat for both steelhead and Chinook salmon within the Upper Salmon valley segment. It is likely that the decrease in "complex" geomorphic character is related to an increase in velocity, resulting in unsuitable spawning due to velocities being too high.  This corroborates the findings in the IRA [@IdOSC2019] where they found that spawning habitat capacity was not limiting to support contemporary escapement estimates in those areas or reach recovery goals. The results illustrated here provide an additional line of evidence; these valley segments support adequate spawning suitability based on hydraulics (depth, velocity) and spawning conditions do not appear to be limiting population recovery of the two species of interest. Although out of the scope of this document, it may be possible that the incubation or emergence life stages following spawning may or may not be limited by the habitat. Fine sedimentation in the target watersheds and in the Upper Salmon Subbasin as a whole remains a concern as it can reduce oxygenation of eggs and affect hyporheic flow, reducing egg survival.
 
 ## Juvenile rearing
 
 ### Steelhead
 
-For steelhead, hydraulic habitat quality and quantity does not appear to be limiting for either summer or winter rearing within the upper and lower Lemhi; the majority of composite suitability grid cells fall at or above 0.9. The majority of stream length in the upper Lemhi is characterized as 'Complex', but the results within the lower Lemhi appear to be the opposite, where the stream length is characterized as 'Mixed' or 'Simplified' for most of the valley segment. The results of the Upper Salmon are mixed, with much of the modelling domain resulting in suitability at or above 0.5 for Summer, Winter, and Spring rearing. As you move downstream within the valley segment the percent of 'Complex' geomorphic type decrease, however that doesnot appear to be driving a parallel reduction in juvenile steelhead reaering. The majority of juvenile Spring rearing is near or at 0 composite suitability, but this is expected during high flows where the mainstem channel would have extremely high velocities due to Spring runoff. The Pahsimeroi river had the lowest amount and quality of suitable juvenile rearing for both SUmmer and Winter scenarios in reach GR_08, but reach GR_09 and GR_10 illustrate similiar results to the Lemhi river with the many of grid cell composite suitability falling at or above 0.9. As the percent of 'Complex' geomorphic character increases within the Pahsimeroi the amount of suitable rearing habitat also increase. when compared to the other scenarios and species (Chinook salmon) analyzed. Modeled depths and velocities within the scenarios evaluated appear to be largely within the ranges considered suitable for steelhead rearing in the target watersheds. An exception is the GR_08 and GR_09 reaches in the lower Pahsimeroi where the mean composite suitability values fall below 0.5 (Figure \@ref(fig:ph-plot)), presumably due to high velocities in those locations. This area of the Pahsimeroi has the lowest mean habitat hydraulic habitat quality for all reaches and steelhead scenariosIn addition, there are two reaches in the Upper Salmon (GR_05 and GR_06) where mean suitability is decreased; however, mean composites there remain above 0.5 (Figure \@ref(fig:us-plot)). Further evaluation of the depth and velocity suitability values or .tifs in those geomorphic reaches would reveal wether high velocities or low depths (or both) are the culprit for decreased suitabilities in those reaches.
+For steelhead, hydraulic habitat quality and quantity does not appear to be limiting for either summer or winter rearing within the upper and lower Lemhi; the majority of composite suitability grid cells fall at or above 0.9. The majority of stream length in the upper Lemhi is characterized as "complex", but the results within the lower Lemhi appear to be the opposite, where the stream length is characterized as 'Mixed' or 'Simplified' for most of the valley segment. The results of the Upper Salmon are mixed, with much of the modelling domain resulting in suitability at or above 0.5 for summer, winter, and spring rearing. As you move downstream within the valley segment the percent of "complex" geomorphic type decreases, however that does not appear to be driving a parallel reduction in juvenile steelhead reaering. The majority of juvenile spring rearing is near or at 0 composite suitability, but this is expected during high flows where the mainstem channel would have extremely high velocities due to spring runoff. The Pahsimeroi river had the lowest amount and quality of suitable juvenile rearing for both summer and winter scenarios in reach GR_08, but reach GR_09 and GR_10 illustrate similiar results to the Lemhi river with the many of grid cell composite suitability falling at or above 0.9. As the percent of "complex" geomorphic character increases within the Pahsimeroi the amount of suitable rearing habitat also increases. ***when compared to the other scenarios and species (Chinook salmon) analyzed. (this sentence doesn't make sense to me)*** Modeled depths and velocities within the scenarios evaluated appear to be largely within the ranges considered suitable for steelhead rearing in the target watersheds. An exception is the GR_08 and GR_09 reaches in the lower Pahsimeroi where the mean composite suitability values fall below 0.5 (Figure \@ref(fig:ph-plot)), presumably due to high velocities in those locations. This area of the Pahsimeroi has the lowest mean ***habitat hydraulic habitat quality (is this really the right term? One too many "habitat"?*** for all reaches and steelhead scenarios. In addition, there are two reaches in the Upper Salmon (GR_05 and GR_06) where mean suitability is decreased. However, mean composites there remain above 0.5 (Figure \@ref(fig:us-plot)). Further evaluation of the depth and velocity suitability values or .tifs in those geomorphic reaches would reveal whether high velocities or low depths (or both) are the culprit for decreased suitabilities in those reaches.
 
 ### Chinook salmon
 
-Hydraulic habitat appears to be poor for juvenile Chinook salmon rearing in all three watersheds with the exception being the Upper Salmon valley segment during the summer and winter scenarios evaluated. Although mean composite suitability values remain below 0.5 even in the Upper Salmon (Figure \@ref(fig:us-plot)). Composite suitability values in the Lemhi and Pahsimeroi watersheds were largely near 0 with few exceptions (Figures \@ref(fig:ul-plot), Figures \@ref(fig:ll-plot), and Figures \@ref(fig:ph-plot)). These results parallel findings in the IRA where Chinook salmon juvenile rearing was identified as the most limited species and stage combination evaluated in that study. These results provide an additional line of evidence that a lack of suitable habitat for juvenile Chinook salmon is a concern in the Upper Salmon Subbasin. It is of interest that areas of suitable modeled depths and velocities were identified among geomorphic reaches in the Upper Salmon valley segment (at least for the summer and winter low-flows); the resulting depth, velocity, and composite suitability .tifs for those reaches could be further inspected to identify characteristics that allow for suitable depths and velocities. With that said, composite suitabilities in the spring high-flow scenario evaluated in the Upper Salmon subbasin were poor, which is to be expected.
+Hydraulic habitat appears to be poor for juvenile Chinook salmon rearing in all three watersheds with the exception being the Upper Salmon valley segment during the summer and winter scenarios evaluated, although mean composite suitability values remain below 0.5 even in the Upper Salmon (Figure \@ref(fig:us-plot)). Composite suitability values in the Lemhi and Pahsimeroi watersheds were largely near 0 with few exceptions (Figures \@ref(fig:ul-plot), \@ref(fig:ll-plot), and \@ref(fig:ph-plot)). These results parallel findings in the IRA where Chinook salmon juvenile rearing was identified as the most limited species and stage combination evaluated in that study. These results provide an additional line of evidence that a lack of suitable habitat for juvenile Chinook salmon is a concern in the Upper Salmon Subbasin. It is of interest that areas of suitable modeled depths and velocities were identified among geomorphic reaches in the Upper Salmon valley segment (at least for the summer and winter low-flows); the resulting depth, velocity, and composite suitability .tifs for those reaches could be further inspected to identify characteristics that allow for suitable depths and velocities. With that said, composite suitabilities in the spring high-flow scenario evaluated in the Upper Salmon subbasin were poor, which is to be expected.
 
 ## Conclusions
 
@@ -601,12 +606,12 @@ This document provides a baseline of existing hydraulic conditions for the 4 MRA
 
 # Literature Cited
 
-Borden, C. (2016). Lemhi River Basin Model Supporting Documentation. Centered Consulting International report for the State of Idaho Office of Species Conservation, March 2016, 80 p.
+<!-- Borden, C. (2016). Lemhi River Basin Model Supporting Documentation. Centered Consulting International report for the State of Idaho Office of Species Conservation, March 2016, 80 p. -->
 
-Idaho OSC Team (Idaho Governor’s Office of Species Conservation and partners). 2019. Upper Salmon Subbasin Habitat Integrated Rehabilitation Assessment. Assessment prepared for and with the U.S. Department of the Interior, Bureau of Reclamation. June 2019. 625 pp.
+<!-- Idaho OSC Team (Idaho Governor’s Office of Species Conservation and partners). 2019. Upper Salmon Subbasin Habitat Integrated Rehabilitation Assessment. Assessment prepared for and with the U.S. Department of the Interior, Bureau of Reclamation. June 2019. 625 pp. -->
 
-Maret, T.R, J.E. Horness, and D.S. Ott. 2006. Instream Flow Characterization of Upper Salmon River Basin Streams, Central Idaho, 2005. Scientific Investigations Report 2006-5230. U.S. Department of the Interior, U.S. Geological Survey. Prepared in cooperation with the Bureau of Reclamation. 110 p.
+<!-- Maret, T.R, J.E. Horness, and D.S. Ott. 2006. Instream Flow Characterization of Upper Salmon River Basin Streams, Central Idaho, 2005. Scientific Investigations Report 2006-5230. U.S. Department of the Interior, U.S. Geological Survey. Prepared in cooperation with the Bureau of Reclamation. 110 p. -->
 
-R Core Team. 2017. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/
+<!-- R Core Team. 2017. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/ -->
 
-Tonina, D., McKean, J.A., Benjankar, R.M., Wright, W., Goode, J.R., Chen, Q., Reeder, W.J., Carmichael, R.A., and Edmondson, M.R. 2018. Mapping river bathymetries: evaluating topobathymetric LiDAR survey. Earth Surf. Process. Landforms. doi:10.1002/esp.4513.
+<!-- Tonina, D., McKean, J.A., Benjankar, R.M., Wright, W., Goode, J.R., Chen, Q., Reeder, W.J., Carmichael, R.A., and Edmondson, M.R. 2018. Mapping river bathymetries: evaluating topobathymetric LiDAR survey. Earth Surf. Process. Landforms. doi:10.1002/esp.4513. -->
