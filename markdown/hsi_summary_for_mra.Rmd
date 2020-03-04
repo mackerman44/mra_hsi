@@ -96,7 +96,7 @@ Detailed methods are as follows:
 
 7. Write out the composite suitability values and geomorphic reaches for each pixel to a .csv. These results are all stored in the output/hsi_raw/ directory in the `mra_hsi` repository.
 
-8. Calculate wetted area, weighted usable area, and normalized weighted usable area (normalized by the wetted area)  for each species, life stage, and study reach. ***How is weighted useable area calculated? Unclear how you moved from composite suitability at the 1mx1m pixel scale to weighted useable area at the reach scale***
+8. Calculate the total wetted area, weighted usable area, and normalized weighted usable area (i.e. hydraulic habitat suitability) for each species, life stage, and geomorphic reach. The total wetted area was calculated by counting the total number of pixels with a known area, that occur within the geomorphic reach and wetted area for a given scenario. The weighted usable area (WUA) was calculated by summing the composite suitability values of all pixels within that same area. And finally, the normalized weighted usable area i.e. hydraulic habitat suitability (HHS), was calculated by dividing the WUA by the total wetted area for each geomorphic reach.
 
 Finally, we visualized the composite suitability values by valley segment, species, life stage (adult spawning, juvenile summer rearing, juvenile winter rearing), and geomorphic reach. Violin plots showing the distribution of composite suitability values are provided in the [Results] section. For reference, the proportion of each reach classified as simple, mixed, or complex is also provided. Further, we provide maps showing the mean of composite suitability values by species and life stage for each valley segment, and plots illustrating the weighted usable area and normalized weighted usable area for each individual scenario.
 
@@ -155,6 +155,7 @@ hsi_p = sapply(hsi_outputs, read_csv, simplify = F) %>%
                           `chnk` = "Chinook",
                           `sthd` = "Steelhead")) %>%
   mutate(scenario = recode(scenario,
+                           `juv_spr` = "Juvenile Spring Rearing",
                            `juv_sum` = "Juvenile Summer Rearing",
                            `juv_win` = "Juvenile Winter Rearing",
                            `spw_spr` = "Adult Spawning",
@@ -282,24 +283,30 @@ ul_cs_map
 #ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
 ```
 
-```{r ul-hsi-p, fig.cap = "draft wua and hhs plot for Richie"}
-# draft of hsi plot that Richie suggested. Would is be possible to make the bars and dots each a line plot with different colors? I can send you an example if you'd like. Are the dots WUA and the bars normalized WUA? 
-coeff = .00001
-lemh_hsi_p = hsi_p %>%
+```{r ul-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+coeff = .0000075
+ulem_hsi_p = hsi_p %>%
   filter(watershed == "lemh") %>%
+  filter(geo_reach %in% ul_geos) %>%
   ggplot(aes(x = geo_reach)) +
-  geom_point(aes(y = WUA)) +
-  geom_bar(aes(y = HHS / coeff), stat = "identity", 
-           alpha = 0.5, fill = "cornflowerblue") +
+  geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 1.1) +
+  geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 1.1) +
+  #geom_point(aes(y = WUA)) +
+  #geom_bar(aes(y = HHS / coeff), stat = "identity", 
+  #         alpha = 0.5, fill = "cornflowerblue") +
   scale_y_continuous(sec.axis = sec_axis(~. * coeff,
-                                         name = "HHS")) +
+                                         name = "Hydraulic Habitat Suitability (HHS)",
+                                         breaks = seq(0, 1, by = 0.25))) +
   theme_bw() +
+  labs(title = "Upper Lemhi",
+       x = "Geomorphic Reach",
+       y = expression("Weighted Usable Area (WUA) m"^{2})) +
   facet_grid(species ~ scenario) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 1, size = 7))
-lemh_hsi_p
+  theme(axis.text.x = element_text(angle = -45, hjust = -0.05, vjust = 0.9, size = 8),
+        axis.title.y = element_text(colour = "royalblue4"),
+        axis.title.y.right = element_text(colour = "orangered2"))
+ulem_hsi_p
 ```
-
-***Need better figure caption for Figure 3.3; explain what HHS is***
 
 ## Lower Lemhi
 
@@ -395,6 +402,31 @@ ll_cs_map
 #ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
 ```
 
+```{r ll-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the lower Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+coeff = .0000075
+llem_hsi_p = hsi_p %>%
+  filter(watershed == "lemh") %>%
+  filter(geo_reach %in% ll_geos) %>%
+  ggplot(aes(x = geo_reach)) +
+  geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 1.1) +
+  geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 1.1) +
+  #geom_point(aes(y = WUA)) +
+  #geom_bar(aes(y = HHS / coeff), stat = "identity", 
+  #         alpha = 0.5, fill = "cornflowerblue") +
+  scale_y_continuous(sec.axis = sec_axis(~. * coeff,
+                                         name = "Hydraulic Habitat Suitability (HHS)",
+                                         breaks = seq(0, 1, by = 0.25))) +
+  theme_bw() +
+  labs(title = "Lower Lemhi",
+       x = "Geomorphic Reach",
+       y = expression("Weighted Usable Area (WUA) m"^{2})) +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, hjust = -0.05, vjust = 0.9, size = 8),
+        axis.title.y = element_text(colour = "royalblue4"),
+        axis.title.y.right = element_text(colour = "orangered2"))
+llem_hsi_p
+```
+
 ## Pahsimeroi
 
 Figure \@ref(fig:ph-plot) summarizes the composite hydraulic suitability within the Pahsimeroi valley segment to support Chinook salmon spawning and juvenile rearing (summer and winter) along with the proportion of each geomorphic reach classified as simple, mixed, or complex. Composite suitability for spawning in the Lower Pahsimeroi tends to be low for both species, especially in the uppermost geomorphic reaches, GR_08 and GR_09.  Given the relationships in Figures \@ref(fig:chnk-hsi) and \@ref(fig:sthd-hsi) it can be assumed that this is can be attributed to higher than suitable velocities. Suitability for juvenile Chinook rearing is low within the Lower Pahsimeroi valley segment (similiar to the Lemhi); however, suitability for juvenile steelhead rearing is also low, most notable in GR_08 and GR_09. The mean suitability for steelhead juvenile rearing in those reaches is near 0.35 (shown in the violin plots); lower than in the Lemhi.
@@ -483,6 +515,29 @@ ph_cs_map = ph_cs %>%
         legend.position = "top")
 ph_cs_map
 #ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
+```
+
+```{r ph-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the Pahsimeroi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+coeff = .000001
+pahs_hsi_p = hsi_p %>%
+  filter(watershed == "pahs") %>%
+  ggplot(aes(x = geo_reach)) +
+  geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 1.1) +
+  geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 1.1) +
+  #geom_point(aes(y = WUA)) +
+  #geom_bar(aes(y = HHS / coeff), stat = "identity", 
+  #         alpha = 0.5, fill = "cornflowerblue") +
+  scale_y_continuous(sec.axis = sec_axis(~. * coeff,
+                                         name = "Hydraulic Habitat Suitability (HHS)",
+                                         breaks = seq(0, 1, by = 0.25))) +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = expression("Weighted Usable Area (WUA) m"^{2})) +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, hjust = -0.05, vjust = 0.9, size = 8),
+        axis.title.y = element_text(colour = "royalblue4"),
+        axis.title.y.right = element_text(colour = "orangered2"))
+pahs_hsi_p
 ```
 
 ## Upper Salmon
@@ -584,25 +639,50 @@ us_cs_map
 #ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
 ```
 
+```{r us-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Salmon River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+coeff = .000002
+upsa_hsi_p = hsi_p %>%
+  filter(watershed == "upsa") %>%
+  ggplot(aes(x = geo_reach)) +
+  geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 1.1) +
+  geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 1.1) +
+  #geom_point(aes(y = WUA)) +
+  #geom_bar(aes(y = HHS / coeff), stat = "identity", 
+  #         alpha = 0.5, fill = "cornflowerblue") +
+  scale_y_continuous(sec.axis = sec_axis(~. * coeff,
+                                         name = "Hydraulic Habitat Suitability (HHS)",
+                                         breaks = seq(0, 1, by = 0.25))) +
+  theme_bw() +
+  labs(x = "Geomorphic Reach",
+       y = expression("Weighted Usable Area (WUA) m"^{2})) +
+  facet_grid(species ~ scenario) +
+  theme(axis.text.x = element_text(angle = -45, hjust = -0.05, vjust = 0.9, size = 8),
+        axis.title.y = element_text(colour = "royalblue4"),
+        axis.title.y.right = element_text(colour = "orangered2"))
+upsa_hsi_p
+```
+
 # Discussion
 
 ## Spawning
 
-Of the three watersheds and four valley segments evaluated, the Pahsimeroi appears to have the lowest suitability for both Chinook and steelhead spawning where the majority of the model domain for reaches GR_08 and GR_09 illustrating a 0 composite suitability, but as you move downstream in the watershed to GR_10, the suitability is much improved. Hydraulic habitat does not appear to be limiting for spawning for Chinook salmon or steelhead within the two Lemhi valley segments analyzed. The Upper Salmon valley segment has mixed suitability results; primarily where there is increasing "complex" geomorphic character, the number of suitable grid cells also increases. Reaches GR_04, GR_05, and GR_06 appear to have the lowest quality spawning habitat for both steelhead and Chinook salmon within the Upper Salmon valley segment. It is likely that the decrease in "complex" geomorphic character is related to an increase in velocity, resulting in unsuitable spawning due to velocities being too high.  This corroborates the findings in the IRA [@IdOSC2019] where they found that spawning habitat capacity was not limiting to support contemporary escapement estimates in those areas or reach recovery goals. The results illustrated here provide an additional line of evidence; these valley segments support adequate spawning suitability based on hydraulics (depth, velocity) and spawning conditions do not appear to be limiting population recovery of the two species of interest. Although out of the scope of this document, it may be possible that the incubation or emergence life stages following spawning may or may not be limited by the habitat. Fine sedimentation in the target watersheds and in the Upper Salmon Subbasin as a whole remains a concern as it can reduce oxygenation of eggs and affect hyporheic flow, reducing egg survival.
+Of the three watersheds and four valley segments evaluated, the Pahsimeroi appears to have the lowest suitability for both Chinook and steelhead spawning where the majority of the model domain for reaches GR_08 and GR_09 illustrating a 0 composite suitability, but as you move downstream in the watershed to GR_10, the suitability is much improved. Hydraulic habitat does not appear to be limiting for spawning for Chinook salmon or steelhead within the two Lemhi valley segments analyzed. The Upper Salmon valley segment has mixed suitability results; primarily where there is increasing "complex" geomorphic character, the number of suitable grid cells also increases. Reaches GR_04, GR_05, and GR_06 appear to have the lowest quality spawning habitat for both steelhead and Chinook salmon within the Upper Salmon valley segment. It is likely that the decrease in "complex" geomorphic character is related to an increase in velocity, resulting in unsuitable spawning due to velocities being too high. This corroborates the findings in the IRA [@IdOSC2019] where they found that spawning habitat capacity was not limiting to support contemporary escapement estimates in those areas or reach recovery goals. The results illustrated here provide an additional line of evidence; these valley segments support adequate spawning suitability based on hydraulics (depth, velocity) and spawning conditions do not appear to be limiting population recovery of the two species of interest. Although out of the scope of this document, it may be possible that the incubation or emergence life stages following spawning may or may not be limited by the habitat. Fine sedimentation in the target watersheds and in the Upper Salmon Subbasin as a whole remains a concern as it can reduce oxygenation of eggs and affect hyporheic flow, reducing egg survival.
 
 ## Juvenile rearing
 
 ### Steelhead
 
-For steelhead, hydraulic habitat quality and quantity does not appear to be limiting for either summer or winter rearing within the upper and lower Lemhi; the majority of composite suitability grid cells fall at or above 0.9. The majority of stream length in the upper Lemhi is characterized as "complex", but the results within the lower Lemhi appear to be the opposite, where the stream length is characterized as 'Mixed' or 'Simplified' for most of the valley segment. The results of the Upper Salmon are mixed, with much of the modelling domain resulting in suitability at or above 0.5 for summer, winter, and spring rearing. As you move downstream within the valley segment the percent of "complex" geomorphic type decreases, however that does not appear to be driving a parallel reduction in juvenile steelhead reaering. The majority of juvenile spring rearing is near or at 0 composite suitability, but this is expected during high flows where the mainstem channel would have extremely high velocities due to spring runoff. The Pahsimeroi river had the lowest amount and quality of suitable juvenile rearing for both summer and winter scenarios in reach GR_08, but reach GR_09 and GR_10 illustrate similiar results to the Lemhi river with the many of grid cell composite suitability falling at or above 0.9. As the percent of "complex" geomorphic character increases within the Pahsimeroi the amount of suitable rearing habitat also increases. ***when compared to the other scenarios and species (Chinook salmon) analyzed. (this sentence doesn't make sense to me)*** Modeled depths and velocities within the scenarios evaluated appear to be largely within the ranges considered suitable for steelhead rearing in the target watersheds. An exception is the GR_08 and GR_09 reaches in the lower Pahsimeroi where the mean composite suitability values fall below 0.5 (Figure \@ref(fig:ph-plot)), presumably due to high velocities in those locations. This area of the Pahsimeroi has the lowest mean ***habitat hydraulic habitat quality (is this really the right term? One too many "habitat"?*** for all reaches and steelhead scenarios. In addition, there are two reaches in the Upper Salmon (GR_05 and GR_06) where mean suitability is decreased. However, mean composites there remain above 0.5 (Figure \@ref(fig:us-plot)). Further evaluation of the depth and velocity suitability values or .tifs in those geomorphic reaches would reveal whether high velocities or low depths (or both) are the culprit for decreased suitabilities in those reaches.
+For steelhead, hydraulic habitat quality and quantity does not appear to be limiting for either summer or winter rearing within the upper and lower Lemhi; the majority of composite suitability values in grid cells fall at or above 0.9. The majority of stream length in the upper Lemhi is characterized as "Complex", but geomorphic results within the lower Lemhi appear to be the opposite, where the stream length is characterized as "Mixed" or "Simplified" for most of the valley segment. Results in the Upper Salmon are mixed, with much of the modeling domain with composite suitability values at or above 0.5 for summer, winter, and spring rearing. As you move downsream within the valley segment, the percentage of "Complex" geomorphic type decreases, but that does not appear to be driving a parallel reduction in juvenile steelhead rearing. The majority of juvenile spring rearing is near or at 0 composite suitability, but this is expected during high flows where the mainstem channel would have extrememly high velocities during spring snow runoff. The Pahsimeroi river had the lowest amount and quality of suitable juvenile rearing for both summer and winter scenarios in reach GR_08, but reaches GR_09 and GR_10 illustrate similar results to the Lemhi River with many of the grid cell composite suitability falling at or above 0.9. As the percentage of "Complex" geomorphic character increases within the Pahsimeroi River, the amount of suitable rearing habitat also appears to increase.
+
+Modeled depths and velocities within the scenarios evaluated appear to be largely within the ranges considered suitable for steelhead rearing in the target watersheds. An exception is the GR_08 and GR_09 reaches in the lower Pahsimeroi valley segment where mean composite suitabilities fall below 0.5 (Figure \@ref(fig:ph-plot)), presumably due to high velocities in those locations. This area of the Pahsimeroi has the lowest mean hydraulic habitat suitability for all reaches and steelhead scenarios. In addition, there are two geomorphic reaches in the Upper Salmon River (GR_05 and GR_06) where mean composite suitability is decreased; however, mean composites there remain above 0.5 (Figure \@ref(fig:us-plot)). Further evaluation of the depth and velocity suitability values or .tifs in those geomorphic reaches would reveal whether high velocities or low depth (or both) are the culprit for decreased hydraulic suitabilties in those reaches.
 
 ### Chinook salmon
 
-Hydraulic habitat appears to be poor for juvenile Chinook salmon rearing in all three watersheds with the exception being the Upper Salmon valley segment during the summer and winter scenarios evaluated, although mean composite suitability values remain below 0.5 even in the Upper Salmon (Figure \@ref(fig:us-plot)). Composite suitability values in the Lemhi and Pahsimeroi watersheds were largely near 0 with few exceptions (Figures \@ref(fig:ul-plot), \@ref(fig:ll-plot), and \@ref(fig:ph-plot)). These results parallel findings in the IRA where Chinook salmon juvenile rearing was identified as the most limited species and stage combination evaluated in that study. These results provide an additional line of evidence that a lack of suitable habitat for juvenile Chinook salmon is a concern in the Upper Salmon Subbasin. It is of interest that areas of suitable modeled depths and velocities were identified among geomorphic reaches in the Upper Salmon valley segment (at least for the summer and winter low-flows); the resulting depth, velocity, and composite suitability .tifs for those reaches could be further inspected to identify characteristics that allow for suitable depths and velocities. With that said, composite suitabilities in the spring high-flow scenario evaluated in the Upper Salmon subbasin were poor, which is to be expected.
+Hydraulic habitat suitability appears to be poor for juvenile Chinook salmon rearing in all three watersheds with the exception being the Upper Salmon valley segment during the summer and winter scenarios evaluated, alhtough mean composite suitabilty values there remain below 0.5 (Figure \@ref(fig:us-plot)). Compsite suitability values in the Lemhi and Pahsimeroi were largely near 0 with few exceptions (Figures \@ref(fig:ul-plot), \@ref(fig:ll-plot), and \@ref(fig:ph-plot)). These results corroborate findings in the IRA where Chinook salmon juvenile rearing was identified as the most limited species and life stage combination evaluated there. These results provide an additional line of evidence that a lack of suitable habitat for juvenile Chinook salmon is a concern in the Upper Salmon Subbasin. It is of interest that areas of suitable modeled depths and velocities were identified among geomorphic reaches in the Upper Salmon valley segment (at least for the summer and winter low-flows); the resulting depth, velocity, and composite suitability .tifs for those reaches could be further inspected to identify characteristics that allow for suitable depths and velocities to describe target conditions. With that said, composite suitabilities in the spring high-flow scenario evaluated in the Upper Salmon subbasin were poor, which is to be expected.
 
 ## Conclusions
 
-This document provides a baseline of existing hydraulic conditions for the 4 MRA valley segments of interest in adittion to the entirety of the available LiDAR and numerical modelling domain within the Upper Salmon Subbasin. Summaries provided here could be used, if desired, for project prioritization. The raw composite suitability values are available in the `mra_hsi` repository at https://github.com/mackerman44/mra_hsi and the resulting depth, velocity, and composite suitability raster .tifs are available from the authors. Further, inspection of areas with high composite suitabilities for a given species by life stage combination could be used to identify characteristics that may provide relatively greater amounts and quality of depths and velocities, and perhaps, be used to describe relative target condtions. All of these habitat suitability results should be considered relative when trying to evaluate target conditions because the baseline of target conditions, given contemporary habitat, may still be poorer than habitat conditions available before anthropogenic influence. Results provided here can be used in the upcoming MRA reports to help describe existing and target conditions.
+This document provides a baseline of existing hydraulic conditions for the 4 MRA valley segments of interest in addition to the entirety of the available LiDAR and numerical modelling domain within the Upper Salmon Subbasin. Summaries provided here could be used, if desired, for project prioritization. The raw composite suitability values are available in the `mra_hsi` repository at https://github.com/mackerman44/mra_hsi and the resulting depth, velocity, and composite suitability raster .tifs are available from the authors (and may be transferred to the OSC FTP). Further, inspection of areas with high composite suitabilities for a given species by life stage combination could be used to identify characteristics that may provide relatively greater amounts and quality of depths and velocities, and perhaps, be used to describe relative target condtions. All of these habitat suitability results should be considered relative when trying to evaluate target conditions because the baseline of target conditions, given contemporary habitat, may still be poorer than habitat conditions available before anthropogenic influence. Results provided here can be used in the upcoming MRA reports to help describe existing and target conditions.
 
 # Literature Cited
 
