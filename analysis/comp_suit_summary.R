@@ -2,7 +2,7 @@
 #
 # Created by: Mike Ackerman
 #
-# This script reads in cresults from calculate_hsi_mets.R and geo_summary.R, 
+# This script reads in results from calculate_hsi_mets.R and geo_summary.R, 
 # summarizes and plots them
 #
 ##################################################
