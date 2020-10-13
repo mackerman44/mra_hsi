@@ -12,15 +12,6 @@ author:
     email: kevin.see@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::pdf_document2:
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks2.lua
-    - --lua-filter=../templates/pagebreak.lua
-    fig_height: 6
-    fig_width: 8
-    includes:
-      in_header: "../templates/header_ABS.tex"
   bookdown::html_document2:
     theme: simplex
     toc: yes
@@ -32,6 +23,15 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
   bookdown::word_document2: 
     fig_caption: yes
     fig_height: 4
@@ -376,6 +376,12 @@ ll_p
 Figure \@ref(fig:ll-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Lower Lemhi valley segment. The Lower Lemhi map shows the same trends as the Upper Lemhi map. Hydraulic suitability for spawning and juvenile steelhead rearing is adequate; suitability for juvenile Chinook rearing is poor. Note that the upstream simple reaches (GR_09-11) are the deepest blue whereas the 'more' complex GR_15 seems to support higher calculated suitability (lighter blue) for juvenile Chinook rearing.
 
 ```{r ll-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
+scenario_names = c(
+  `Adult Spawning` = "Adult Spawning",
+  `Juvenile Summer Rearing` = "Juvenile\nSummer Rearing",
+  `Juvenile Winter Rearing` = "Juvenile\nWinter Rearing"
+)
+
 # map by scenario
 ll_cs_map = ll_cs %>%
   group_by(species, scenario, geo_reach) %>%
@@ -396,7 +402,8 @@ ll_cs_map = ll_cs %>%
                        direction = 1) +
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
-  facet_grid(species ~ scenario) +
+  facet_grid(species ~ scenario,
+             labeller = labeller(scenario = as_labeller(scenario_names))) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
