@@ -16,8 +16,7 @@ library(sf)
 #-------------------------
 if(.Platform$OS.type != 'unix') {
   nas_prefix = "S:"
-}
-if(.Platform$OS.type == 'unix') {
+} else if(.Platform$OS.type == 'unix') {
   nas_prefix = "~/../../Volumes/ABS/"
 }
 
@@ -112,3 +111,52 @@ for(wtsd in watersheds[-1]) {
     }
   }
 }
+
+# make all the HSI estimates spatial
+# get points for each rkm reach
+rch_pts = tibble(watershed = c("lemh",
+                               "pahs",
+                               "upsa"),
+                 nm = c('Lemhi',
+                        'Pahsimeroi',
+                        'Upper_Salmon')) %>%
+  mutate(rch_pts = map(nm,
+                       .f = function(x) {
+                         all_files = list.files(paste0(nas_prefix, "data/habitat/HSI/MRA_HSI_reaches/", x))
+                         pt_file = all_files[grepl("^Points", all_files) & grepl('.shp$', all_files)]
+                         st_read(paste0(nas_prefix, "data/habitat/HSI/MRA_HSI_reaches/", x, "/", pt_file)) %>%
+                           mutate(Reach = 1:n(),
+                                  Reach = Reach - 1) %>%
+                           dplyr::select(Reach)
+                       })) %>%
+  mutate(rch_pts = map(rch_pts,
+                       .f = st_transform,
+                       crs = st_crs(rch_pts[[1]]))) %>%
+  unnest(cols = rch_pts) %>%
+  st_as_sf()
+
+## read in all of the HSI results
+hsi_outputs = list.files(path = "output/hsi_rkm/", pattern = "*.csv", full.names = T)
+hsi_rkm = sapply(hsi_outputs, read_csv, simplify = F) %>%
+  bind_rows(.id = "id") %>%
+  dplyr::select(-c(id, X1)) %>%
+  dplyr::select(species, life_stage, season, rkm = Reach, everything()) %>%
+  mutate(scenario = paste(life_stage, season, sep = "_")) %>%
+  mutate(species = recode(species,
+                          `chnk` = "Chinook",
+                          `sthd` = "Steelhead")) %>%
+  mutate(scenario = recode(scenario,
+                           `juv_spr` = "Juvenile Spring Rearing",
+                           `juv_sum` = "Juvenile Summer Rearing",
+                           `juv_win` = "Juvenile Winter Rearing",
+                           `spw_spr` = "Adult Spawning",
+                           `spw_sum` = "Adult Spawning"))
+
+# add HSI info to each point
+rch_hsi = rch_pts %>%
+  inner_join(hsi_rkm %>%
+               rename(Reach = rkm))
+
+# save as GPKG
+st_write(rch_hsi,
+         dsn = "output/hsi_rkm/hsi_rch_pts.gpkg")
