@@ -31,11 +31,11 @@ ssn  = "sum"  # season: either "spr, "sum", or "win"
 
 # to loop over scenarios (e.g.)
 watersheds = c("lemh", "pahs", "upsa")
-species  = c("chnk", "sthd")
-life_stages   = c("juv", "spw")
-seasons  = c("sum", "win")
+species = c("chnk", "sthd")
+life_stages = c("juv", "spw")
+seasons = c("spr", "sum", "win")
 
-for(wtsd in watersheds) {
+for(wtsd in watersheds[-1]) {
   
   # Read in reach polygons (1 polygon for each river kilometer
   rch_file = if_else(wtsd == "lemh",
@@ -56,7 +56,11 @@ for(wtsd in watersheds) {
     for(ls in life_stages) {
       for(ssn in seasons) {
         
-
+        # check if the combined raster exisits
+        if(!paste0(wtsd, "_", spc, "_", ls, "_", ssn, "_comp_suit.tif") %in% list.files(paste0(nas_prefix, "data/habitat/HSI/MRA_outputs"))) {
+          next()
+        }
+        
         # read in combined depth and velocity raster
         comp_suit = raster(paste0(nas_prefix, "data/habitat/HSI/MRA_outputs/", wtsd, "_", spc, "_", ls, "_", ssn, "_comp_suit.tif"))
         
