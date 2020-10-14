@@ -818,7 +818,7 @@ us_cs_map = us_cs %>%
                            "Juvenile Summer Rearing" = "Juvenile\nSummer\nRearing",
                            "Juvenile Winter Rearing" = "Juvenile\nWinter\nRearing")) %>%
   left_join(st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
-              select(GeoReach, geometry) %>%
+              dplyr::select(GeoReach, geometry) %>%
               rename(Name = GeoReach) %>%
               mutate(Name = str_replace(Name, "-", "_")) %>%
               mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
