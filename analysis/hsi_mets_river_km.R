@@ -36,7 +36,7 @@ seasons = c("spr", "sum", "win")
 
 for(wtsd in watersheds[-1]) {
   
-  # Read in reach polygons (1 polygon for each river kilometer
+  # Read in reach polygons (1 polygon for each river kilometer)
   rch_file = if_else(wtsd == "lemh",
                      paste0(nas_prefix, "data/habitat/HSI/MRA_HSI_reaches/Lemhi/Lemhi_Reaches.shp"),
                      if_else(wtsd == "pahs",
