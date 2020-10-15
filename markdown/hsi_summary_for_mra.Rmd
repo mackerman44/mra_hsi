@@ -51,6 +51,7 @@ bibliography: references.bib
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
 # load knitr for markdown
 library(knitr)
+library(kableExtra)
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE,
                       fig.path = "../output/figures/",
                       dpi = 300)
@@ -81,13 +82,13 @@ Evaluate the composite suitability of geomorphic reaches in the upper Lemhi, low
 
 # Methods
 
-We provide methods for calculating the composite (depth & velocity) suitability, by geomorphic reach, for a single scenario including steps to visualize results. A given scenario includes a watershed, species, life stage, and season combination. Here, we provide detailed methods for Scenario 1 in Table \@ref(tab:scenarios-tab): Lemhi River, Chinook salmon, juvenile summer (parr) rearing. The same methods were then applied across all scenarios utilizing the appropriate depth and velocity suitability curves (depending on species and adult versus juvenile) or differing input depth and velocity rasters (depending on season and estimated discharge). All scenarios evaluated are summarized in Table \@ref(tab:scenarios-tab). All data, scripts, outputs, and reports for this analysis can be found within the `mra_hsi` repository at https://github.com/mackerman44/mra_hsi. 
+We provide methods for calculating the composite (depth & velocity) suitability, at each pixel, for a single scenario. These pixels are then summarized by river kilometer (rkm) and geomorphic reach, including visualizations of the results. Which river kilometers are contained within each geomorphic reach is shown in Table \@ref(tab:rkm-geo-rch). A given scenario includes a watershed, species, life stage, and season combination. Here, we provide detailed methods for Scenario 1 in Table \@ref(tab:scenarios-tab): Lemhi River, Chinook salmon, juvenile summer (parr) rearing. The same methods were then applied across all scenarios utilizing the appropriate depth and velocity suitability curves (depending on species and adult versus juvenile) or differing input depth and velocity rasters (depending on season and estimated discharge). All scenarios evaluated are summarized in Table \@ref(tab:scenarios-tab). All data, scripts, outputs, and reports for this analysis can be found within the `mra_hsi` repository at https://github.com/mackerman44/mra_hsi. 
 
 Detailed methods are as follows:
 
 1. Raster .tifs containing depth and velocity values were imported into R [@R2019]. For the Lemhi River, raster pixels were 1m x 1m. As an example, for the Lemhi River, summer, low-flow scenario rasters were named D_Aug_All.tif and V_Aug_All.tif. Rasters were obtained from a previously funded study in the Lemhi River [@Tonina2019], where appropriate discharge volumes for hydraulic analysis were analyzed based on the Lemhi River Base Model [@Borden2016].
 
-2. Import a polygon shapefile delineating the geomorphic reaches as defined in the IRA. The polygon shapefile is used to interrogate the depth and velocity .tifs to determine the geomorphic reach that each depth and velocity pixel falls within.
+2. Import polygon shapefiles delineating the river kilometers and geomorphic reaches as defined in the IRA. These shapefiles are used to interrogate the depth and velocity .tifs to determine which rkm or geomorphic reach each depth and velocity pixel falls within.
 
 3. Read in the depth and velocity habitat suitability curves for Chinook salmon and steelhead from @Maret2006. Depth and velocity habitat suitability index (HSI) curves were available for both species for the adult spawning and juvenile rearing life stages. Functions to calculate the suitability for a given depth or velocity are available in the `mra_hsi` repository in the R/ directory. The [Habitat Suitability] section below shows the HSI curves used from @Maret2006.
 
@@ -95,15 +96,32 @@ Detailed methods are as follows:
 
 5. Calculate the composite suitability value for each raster pixel as the geometric mean of the depth and velocity suitability values. The result is a third composite suitability raster.
 
-6. Extract the composite suitability values located within each geomorphic reach for each pixel into an R dataframe. The dataframe can then be used to summarize and visualize the composite suitability by geomorphic reach for the given watershed, species, life stage, and discharge scenario.
+6. Extract the composite suitability values located within each rkm for each pixel into an R dataframe. The dataframe can then be used to summarize and visualize the composite suitability by rkm or geomorphic reach for the given watershed, species, life stage, and discharge scenario.
 
-7. Write out the composite suitability values and geomorphic reaches for each pixel to a .csv. These results are all stored in the output/hsi_raw/ directory in the `mra_hsi` repository.
+7. Write out the composite suitability values, rkms and geomorphic reaches for each pixel to a .csv. These results are all stored in the output/hsi_raw/ and output/hsi_rkm/ directories in the `mra_hsi` repository.
 
-8. Calculate the total wetted area, weighted usable area, and normalized weighted usable area (i.e. hydraulic habitat suitability) for each species, life stage, and geomorphic reach. The total wetted area was calculated by counting the total number of pixels with a known area, that occur within the geomorphic reach and wetted area for a given scenario. The weighted usable area (WUA) was calculated by summing the composite suitability values of all pixels within that same area. And finally, the normalized weighted usable area i.e. hydraulic habitat suitability (HHS), was calculated by dividing the WUA by the total wetted area for each geomorphic reach.
+8. Calculate the total wetted area, weighted usable area, and normalized weighted usable area (i.e. hydraulic habitat suitability) for each species, life stage, and rkm / geomorphic reach. The total wetted area was calculated by counting the total number of pixels with a known area, that occur within each rkm and wetted area for a given scenario. The weighted usable area (WUA) was calculated by summing the composite suitability values of all pixels within that same area. And finally, the normalized weighted usable area i.e. hydraulic habitat suitability (HHS), was calculated by dividing the WUA by the total wetted area for each rkm or geomorphic reach.
 
-Finally, we visualized the composite suitability values by valley segment, species, life stage (adult spawning, juvenile summer rearing, juvenile winter rearing), and geomorphic reach. Violin plots showing the distribution of composite suitability values are provided in the [Results] section. For reference, the proportion of each reach classified as simple, mixed, or complex is also provided. Further, we provide maps showing the mean of composite suitability values by species and life stage for each valley segment, and plots illustrating the weighted usable area and normalized weighted usable area for each individual scenario.
+Finally, we visualized the composite suitability values by valley segment, species, life stage (adult spawning, juvenile summer rearing, juvenile winter rearing), and rkm / geomorphic reach. Violin plots showing the distribution of composite suitability values are provided in the [Results] section. For reference, the proportion of each reach classified as simple, mixed, or complex is also provided. Further, we provide maps showing the hydraulic habitat suitability values by species and life stage for each valley segment, and plots illustrating the weighted usable area and normalized weighted usable area for each individual scenario.
 
 The resulting raster .tifs showing depth, velocity, and composite suitability are too large to store in a https://github.com/ repository, but are available from the authors upon request.
+
+```{r rkm-geo-rch}
+load("../../MRA_Redds_NorWeST/data/mra_temp_rkm_redd_data_prepped.Rdata")
+
+mra_rkm %>%
+  st_drop_geometry() %>%
+  as_tibble() %>%
+  filter(!is.na(GeoReach)) %>%
+  group_by(River, GeoReach) %>%
+  summarise_at(vars(rkm),
+               tibble::lst(min, max)) %>%
+  kable(booktabs = T,
+        linesep = "",
+        caption = "The minimum and maximum river kilometer contained within each geomorphic reach.") %>%
+  kable_styling()
+```
+
 
 ## Habitat Suitability
 
@@ -167,7 +185,8 @@ hsi_p = sapply(hsi_outputs, read_csv, simplify = F) %>%
 
 ```{r hsi-p-prep-rkm}
 ## read in all of the HSI results, as a spatial file, and then make non-spatial
-rch_hsi = st_read("../output/hsi_rkm/hsi_rch_pts.gpkg")
+rch_hsi = st_read("../output/hsi_rkm/hsi_rch_pts.gpkg",
+                  quiet = T)
 hsi_rkm = rch_hsi %>%
   st_drop_geometry() %>%
   as_tibble() %>%
@@ -189,7 +208,7 @@ We evaluated `r nrow(scenarios_df)` scenarios in total which are summarized in T
 
 # Results
 
-```{r comp-suit-data}
+```{r comp-suit-data, eval = T}
 raw_outputs = list.files(path = "../output/hsi_raw/", pattern = "*.RData", full.names = T)
 all_comp_suits = sapply(raw_outputs, function(x) mget(load(x)), simplify = T) %>%
   bind_rows() %>%
@@ -207,6 +226,26 @@ all_comp_suits = sapply(raw_outputs, function(x) mget(load(x)), simplify = T) %>
   mutate(species = recode(species,
                           `chnk` = "Chinook",
                           `sthd` = "Steelhead"))
+```
+
+```{r geo-polys, }
+geo_rchs = st_read('../data/geomorph/geo_reaches/Lem_Poly_Label.shp',
+                   quiet = T) %>%
+  mutate(watershed = "lemh") %>%
+  rename(GeoReach = Name) %>%
+  select(watershed, GeoReach) %>%
+  bind_rows(st_read('../data/geomorph/geo_reaches/Pah_Poly_Label.shp',
+                   quiet = T) %>%
+              mutate(watershed = "pahs") %>%
+              st_transform(st_crs(.)) %>%
+              select(watershed, GeoReach)) %>%
+  bind_rows(st_read('../data/geomorph/geo_reaches/US_Poly_Label.shp',
+                   quiet = T) %>%
+              mutate(watershed = "upsa") %>%
+              st_transform(st_crs(.)) %>%
+              select(watershed, GeoReach)) %>%
+  mutate(rch_num = str_extract(GeoReach, "[:digit:]+"),
+         rch_num = as.numeric(rch_num))
 ```
 
 
@@ -275,9 +314,9 @@ ul_p
 #ggsave("../output/figures/ul_cs_plot.pdf", ul_p)
 ```
 
-Figure \@ref(fig:ul-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Upper Lemhi valley segment. The results parallel those of Figure \@ref(fig:ul-plot). Hydraulic suitability for spawning (both species) and for steelhead rearing tends to be high (red) whereas suitability for Chinook salmon rearing tend to be low (blue). 
+Figure \@ref(fig:ul-map-rkm) shows the hydraulic habitat suitability of each river kilometer by species and life stage, with the outlines of the geomorphic reaches in the Upper Lemhi valley segment. The results parallel those of Figure \@ref(fig:ul-plot). Hydraulic suitability for spawning (both species) and for steelhead rearing tends to be high (red) whereas suitability for Chinook salmon rearing tend to be low (blue). 
 
-```{r ul-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Lemhi valley segment."}
+```{r ul-map, eval = F, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Lemhi valley segment."}
 # map by scenario
 ul_cs_map = ul_cs %>%
   group_by(species, scenario, geo_reach) %>%
@@ -307,11 +346,11 @@ ul_cs_map
 #ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
 ```
 
-```{r ul-map-rkm, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across river kilometers for Chinook salmon and steelhead in the Upper Lemhi valley segment."}
+```{r ul-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Upper Lemhi valley segment, plotted by river kilometer with geomorphic reaches also shown."}
 # map by scenario
 ul_cs_map2 = rch_hsi %>%
   filter(watershed == "lemh") %>%
-  filter(Reach > 54) %>%
+  filter(Reach > 53) %>%
   ggplot() +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
@@ -319,6 +358,18 @@ ul_cs_map2 = rch_hsi %>%
   scale_color_distiller(palette = "Spectral",
                        direction = 1,
                        name = "Hydraulic Habitat Suitability (HHS)") +
+  geom_sf(data = geo_rchs %>%
+            filter(watershed == 'lemh',
+                   rch_num < 9),
+          color = 'gray70',
+          fill = NA) +
+  geom_sf_label(data = geo_rchs %>%
+            filter(watershed == 'lemh',
+                   rch_num < 9),
+            aes(label = rch_num),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -328,7 +379,7 @@ ul_cs_map2
 ```
 
 
-```{r ul-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ul-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = .0000075
 ulem_hsi_p1 = hsi_p %>%
   filter(watershed == "lemh") %>%
@@ -353,7 +404,7 @@ ulem_hsi_p1 = hsi_p %>%
 ulem_hsi_p1
 ```
 
-```{r ul-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the upper Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ul-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the upper Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   summarise_at(vars(WUA, HHS),
@@ -455,9 +506,9 @@ ll_p
 #ggsave("../output/figures/ll_cs_plot.pdf", ll_p)
 ```
 
-Figure \@ref(fig:ll-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Lower Lemhi valley segment. The Lower Lemhi map shows the same trends as the Upper Lemhi map. Hydraulic suitability for spawning and juvenile steelhead rearing is adequate; suitability for juvenile Chinook rearing is poor. Note that the upstream simple reaches (GR_09-11) are the deepest blue whereas the 'more' complex GR_15 seems to support higher calculated suitability (lighter blue) for juvenile Chinook rearing.
+Figure \@ref(fig:ll-map-rkm) shows the hydraulic habitat suitability of each river kilometer by species and life stage, with the outlines of the geomorphic reaches in the Lower Lemhi valley segment. The Lower Lemhi map shows the same trends as the Upper Lemhi map. Hydraulic suitability for spawning and juvenile steelhead rearing is adequate; suitability for juvenile Chinook rearing is poor. Note that the upstream simple reaches (GR_09-11) are the deepest blue whereas the 'more' complex GR_15 seems to support higher calculated suitability (lighter blue) for juvenile Chinook rearing.
 
-```{r ll-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
+```{r ll-map, eval = F, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
 scenario_names = c(
   `Adult Spawning` = "Adult Spawning",
   `Juvenile Summer Rearing` = "Juvenile\nSummer Rearing",
@@ -494,10 +545,10 @@ ll_cs_map
 #ggsave("../output/figures/ll_cs_map.pdf", ll_cs_map)
 ```
 
-```{r ll-map-rkm, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across river kilometers for Chinook salmon and steelhead in the Lower Lemhi valley segment."}
+```{r ll-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Lower Lemhi valley segment, plotted by river kilometer with geomorphic reaches also shown."}
 ll_cs_map2 = rch_hsi %>%
   filter(watershed == "lemh") %>%
-  filter(Reach <= 54) %>%
+  filter(Reach <= 53) %>%
   ggplot() +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
@@ -505,6 +556,18 @@ ll_cs_map2 = rch_hsi %>%
   scale_color_distiller(palette = "Spectral",
                        direction = 1,
                        name = "Hydraulic Habitat Suitability (HHS)") +
+  geom_sf(data = geo_rchs %>%
+            filter(watershed == 'lemh',
+                   rch_num >= 9),
+          color = 'gray70',
+          fill = NA) +
+  geom_sf_label(data = geo_rchs %>%
+            filter(watershed == 'lemh',
+                   rch_num >= 9),
+            aes(label = rch_num),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -513,7 +576,7 @@ ll_cs_map2 = rch_hsi %>%
 ll_cs_map2
 ```
 
-```{r ll-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the lower Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ll-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the lower Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = .0000075
 llem_hsi_p1 = hsi_p %>%
   filter(watershed == "lemh") %>%
@@ -538,7 +601,7 @@ llem_hsi_p1 = hsi_p %>%
 llem_hsi_p1
 ```
 
-```{r ll-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the lower Lemhi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ll-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the lower Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   summarise_at(vars(WUA, HHS),
@@ -632,9 +695,9 @@ ph_p
 #ggsave("../output/figures/ph_cs_plot.pdf", ph_p)
 ```
 
-Figure \@ref(fig:ph-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Pahsimeroi valley segment. The results are similar to Figure \@ref(fig:ph-map). Hydraulic suitability for spawning is lower in the Lower Pahsimeroi valley segment than it is in either of the Lemhi River valley segments, presumably due to increased velocities (although, this would need to be verified by closer inspection of velocity .tifs or suitability values and/or empirical velocity data). Also, suitability for juvenile steelhead rearing is lower than in the Lemhi, at least for GR_08 and GR_09. Suitability for juvenile Chinook rearing also remains low.
+Figure \@ref(fig:ph-map-rkm) shows the hydraulic habitat suitability of each river kilometer by species and life stage, with the outlines of the geomorphic reaches in the Pahsimeroi valley segment. Hydraulic suitability for spawning is lower in the Lower Pahsimeroi valley segment than it is in either of the Lemhi River valley segments, presumably due to increased velocities (although, this would need to be verified by closer inspection of velocity .tifs or suitability values and/or empirical velocity data). Also, suitability for juvenile steelhead rearing is lower than in the Lemhi, at least for GR_08 and GR_09. Suitability for juvenile Chinook rearing also remains low.
 
-```{r ph-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment."}
+```{r ph-map, eval = F, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment."}
 # map by scenario
 ph_cs_map = ph_cs %>%
   group_by(species, scenario, geo_reach) %>%
@@ -666,7 +729,7 @@ ph_cs_map
 #ggsave("../output/figures/ph_cs_map.pdf", ph_cs_map)
 ```
 
-```{r ph-map-rkm, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across river kilometers for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment."}
+```{r ph-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment, plotted by river kilometer with geomorphic reaches also shown."}
 ph_cs_map2 = rch_hsi %>%
   filter(watershed == "pahs") %>%
   ggplot() +
@@ -676,6 +739,16 @@ ph_cs_map2 = rch_hsi %>%
   scale_color_distiller(palette = "Spectral",
                        direction = 1,
                        name = "Hydraulic Habitat Suitability (HHS)") +
+  geom_sf(data = geo_rchs %>%
+            filter(watershed == 'pahs'),
+          color = 'gray70',
+          fill = NA) +
+  geom_sf_label(data = geo_rchs %>%
+            filter(watershed == 'pahs'),
+            aes(label = rch_num),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -684,7 +757,7 @@ ph_cs_map2 = rch_hsi %>%
 ph_cs_map2
 ```
 
-```{r ph-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the Pahsimeroi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ph-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = .000001
 pahs_hsi_p1 = hsi_p %>%
   filter(watershed == "pahs") %>%
@@ -707,7 +780,7 @@ pahs_hsi_p1 = hsi_p %>%
 pahs_hsi_p1
 ```
 
-```{r ph-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the Pahsimeroi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r ph-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = hsi_rkm %>%
   filter(watershed == "pahs") %>%
   summarise_at(vars(WUA, HHS),
@@ -802,9 +875,9 @@ us_p
 #ggsave("../output/figures/us_cs_plot.pdf", us_p)
 ```
 
-Figure \@ref(fig:us-map) shows the mean composite hydraulic suitability of pixels by species, life stage, and geomorphic reach in the Upper Salmon valley segment. Spawning suitability appears to be lower in the Upper Salmon than in the Lemhi and Pahsimeroi; however, all reaches still appear to have areas (pixels) with high suitability. Suitability for steelhead rearing appears to be moderate. Finally, although still not high, composite suitability for juvenile Chinook salmon rearing in the Upper Salmon appears to be much greater than in the Lemhi or Pahsimeroi.
+Figure \@ref(fig:us-map-rkm) shows the hydraulic habitat suitability of each river kilometer by species and life stage, with the outlines of the geomorphic reaches in the Upper Salmon valley segment. Spawning suitability appears to be lower in the Upper Salmon than in the Lemhi and Pahsimeroi; however, all reaches still appear to have areas (pixels) with high suitability. Suitability for steelhead rearing appears to be moderate. Finally, although still not high, composite suitability for juvenile Chinook salmon rearing in the Upper Salmon appears to be much greater than in the Lemhi or Pahsimeroi.
 
-```{r us-map, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Salmon (Decker Flat) valley segment."}
+```{r us-map, eval = F, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Salmon (Decker Flat) valley segment."}
 # map by scenario
 us_cs_map = us_cs %>%
   group_by(species, scenario, geo_reach) %>%
@@ -843,7 +916,7 @@ us_cs_map
 #ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
 ```
 
-```{r us-map-rkm, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across river kilometers for Chinook salmon and steelhead in the Upper Salmon (Decker Flat) valley segment."}
+```{r us-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Upper Salmon (Decker Flat)  valley segment, plotted by river kilometer with geomorphic reaches also shown."}
 us_cs_map2 = rch_hsi %>%
   filter(watershed == "upsa") %>%
   mutate(scenario = recode(scenario,
@@ -858,6 +931,16 @@ us_cs_map2 = rch_hsi %>%
   scale_color_distiller(palette = "Spectral",
                        direction = 1,
                        name = "Hydraulic Habitat Suitability (HHS)") +
+  geom_sf(data = geo_rchs %>%
+            filter(watershed == 'upsa'),
+          color = 'gray70',
+          fill = NA) +
+  geom_sf_label(data = geo_rchs %>%
+            filter(watershed == 'upsa'),
+            aes(label = rch_num),
+                size = 2,
+                nudge_x = 3000,
+                nudge_y = 500) +
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
@@ -866,7 +949,7 @@ us_cs_map2 = rch_hsi %>%
 us_cs_map2
 ```
 
-```{r us-hsi-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Salmon River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r us-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Salmon River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = .000002
 upsa_hsi_p1 = hsi_p %>%
   filter(watershed == "upsa") %>%
@@ -889,7 +972,7 @@ upsa_hsi_p1 = hsi_p %>%
 upsa_hsi_p1
 ```
 
-```{r us-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the Pahsimeroi River valley segment. The HHS is the normalized by dividing the weighted usable area for each reach by the total area of that reach."}
+```{r us-hsi-rkm-p, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and river kilometer for the Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
 coeff = hsi_rkm %>%
   filter(watershed == "upsa") %>%
   summarise_at(vars(WUA, HHS),
