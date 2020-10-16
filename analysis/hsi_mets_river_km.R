@@ -93,6 +93,8 @@ for(wtsd in watersheds[-1]) {
           mutate(pix_area = pix_area) %>%
           group_by(Reach) %>%
           summarise(area_m2 = sum(pix_area),
+                    n_cells = n(),
+                    MCS = mean(value),
                     WUA = sum(value),
                     HHS = WUA/area_m2) %>%
           mutate(watershed = wtsd,
