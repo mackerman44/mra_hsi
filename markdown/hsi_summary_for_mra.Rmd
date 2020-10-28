@@ -24,15 +24,6 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
-  bookdown::pdf_document2:
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks2.lua
-    - --lua-filter=../templates/pagebreak.lua
-    fig_height: 6
-    fig_width: 8
-    includes:
-      in_header: "../templates/header_ABS.tex"
   bookdown::word_document2: 
     fig_caption: yes
     fig_height: 4
@@ -43,6 +34,15 @@ output:
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
     reference_docx: "../templates/ReportTemplate.docx"
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
 institute:
 - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
@@ -110,7 +110,22 @@ The resulting raster .tifs showing depth, velocity, and composite suitability ar
 ```{r rkm-geo-rch}
 load("../../MRA_Redds_NorWeST/data/mra_temp_rkm_redd_data_prepped.Rdata")
 
-mra_rkm %>%
+# reverse the direction of the rkms
+mra_rkm = mra_rkm %>% 
+  arrange(River, rkm) %>%
+  group_by(River) %>%
+  mutate(rkm = rev(rkm)) %>%
+  ungroup()
+
+# fix where RKMs start in the Upper Salmon
+mra_rkm = mra_rkm %>%
+  mutate(rkm = if_else(River == 'Salmon River',
+                       as.integer(rkm - 109),
+                       rkm)) %>%
+  filter(rkm >= 0) %>%
+  arrange(River, rkm)
+
+rkm_gr = mra_rkm %>%
   st_drop_geometry() %>%
   as_tibble() %>%
   filter(!is.na(GeoReach)) %>%
@@ -119,9 +134,27 @@ mra_rkm %>%
   group_by(Watershed, `Geomorphic Reach`) %>%
   summarise_at(vars(rkm),
                tibble::lst(min, max)) %>%
+  arrange(Watershed, min)
+
+# for plotting geomorphic reach breaks
+rch_label = rkm_gr %>%
+  rename(GeoReach = `Geomorphic Reach`,
+         min_rkm = min,
+         max_rkm = max) %>%
+  group_by(Watershed) %>%
+  mutate(label_txt = str_remove(GeoReach, "GR_"),
+         lead_min = lead(min_rkm),
+         label_rkm = (min_rkm + max_rkm) / 2,
+         sep_rkm = (max_rkm + lead_min) / 2) %>%
+  mutate(sep_rkm = if_else(is.na(sep_rkm),
+                           as.numeric(max_rkm),
+                           sep_rkm))
+
+
+rkm_gr %>%
   kable(booktabs = T,
         linesep = "",
-        caption = "The minimum and maximum river kilometer contained within each geomorphic reach. River kilometers increase as you move downstream.") %>%
+        caption = "The minimum and maximum river kilometer contained within each geomorphic reach. River kilometers increase as you move upstream") %>%
   kable_styling()
 
 ```
@@ -408,7 +441,7 @@ ulem_hsi_p1 = hsi_p %>%
 ulem_hsi_p1
 ```
 
-```{r ul-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the upper Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold."}
+```{r ul-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the upper Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold. Geomorphic reaches are demarkated by vertical dashed lines, and labeled near the top of each plot."}
 coeff = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   summarise_at(vars(WUA, HHS),
@@ -420,6 +453,25 @@ ulem_hsi_p = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   filter(rkm > 54) %>%
   ggplot(aes(x = rkm)) +
+  # mark out geomorphic reaches
+  geom_vline(xintercept = rch_label %>%
+               filter(Watershed == "Lemhi River") %>%
+               filter(min_rkm >= 56) %>%
+               pull(sep_rkm),
+             linetype = 2,
+             color = 'gray80') +
+  geom_text(data = rch_label %>%
+              filter(Watershed == "Lemhi River") %>%
+              filter(min_rkm >= 56),
+            aes(label = label_txt,
+                x = label_rkm),
+            y = filter(hsi_rkm,
+                       watershed == "lemh",
+                       rkm > 54) %>% 
+              pull(WUA) %>% 
+              max() * 0.98,
+            # y = 0.9 / coeff,
+            size = 3) +
   geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 0.5) +
   geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 0.5) +
   geom_smooth(aes(y = WUA, group = 1), 
@@ -434,6 +486,7 @@ ulem_hsi_p = hsi_rkm %>%
                                          name = "Hydraulic Habitat Suitability (HHS)",
                                          breaks = seq(0, 1, by = 0.25))) +
   theme_bw() +
+  theme(panel.grid = element_blank()) +
   labs(title = "Upper Lemhi",
        x = "River Kilometer",
        y = expression("Weighted Usable Area (WUA) m"^{2})) +
@@ -611,7 +664,7 @@ llem_hsi_p1 = hsi_p %>%
 llem_hsi_p1
 ```
 
-```{r ll-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the lower Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold."}
+```{r ll-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the lower Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold. Geomorphic reaches are demarkated by vertical dashed lines, and labeled near the top of each plot."}
 coeff = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   summarise_at(vars(WUA, HHS),
@@ -623,6 +676,25 @@ llem_hsi_p = hsi_rkm %>%
   filter(watershed == "lemh") %>%
   filter(rkm <= 54) %>%
   ggplot(aes(x = rkm)) +
+  # mark out geomorphic reaches
+  geom_vline(xintercept = rch_label %>%
+               filter(Watershed == "Lemhi River") %>%
+               filter(min_rkm < 56) %>%
+               pull(sep_rkm),
+             linetype = 2,
+             color = 'gray80') +
+  geom_text(data = rch_label %>%
+              filter(Watershed == "Lemhi River") %>%
+              filter(min_rkm < 56),
+            aes(label = label_txt,
+                x = label_rkm),
+            y = filter(hsi_rkm,
+                       watershed == "lemh",
+                       rkm <= 54) %>% 
+              pull(WUA) %>% 
+              max() * 0.98,
+            # y = 0.9 / coeff,
+            size = 3) +
   geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 0.5) +
   geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 0.5) +
   geom_smooth(aes(y = WUA, group = 1), 
@@ -637,6 +709,7 @@ llem_hsi_p = hsi_rkm %>%
                                          name = "Hydraulic Habitat Suitability (HHS)",
                                          breaks = seq(0, 1, by = 0.25))) +
   theme_bw() +
+  theme(panel.grid = element_blank()) +
   labs(title = "Lower Lemhi",
        x = "River Kilometer",
        y = expression("Weighted Usable Area (WUA) m"^{2})) +
@@ -790,7 +863,7 @@ pahs_hsi_p1 = hsi_p %>%
 pahs_hsi_p1
 ```
 
-```{r ph-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the lower Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold."}
+```{r ph-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the lower Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold. Geomorphic reaches are demarkated by vertical dashed lines, and labeled near the top of each plot."}
 coeff = hsi_rkm %>%
   filter(watershed == "pahs") %>%
   summarise_at(vars(WUA, HHS),
@@ -801,6 +874,22 @@ coeff = hsi_rkm %>%
 pahs_hsi_p = hsi_rkm %>%
   filter(watershed == "pahs") %>%
   ggplot(aes(x = rkm)) +
+  # mark out geomorphic reaches
+  geom_vline(xintercept = rch_label %>%
+               filter(Watershed == "Pahsimeroi River") %>%
+               pull(sep_rkm),
+             linetype = 2,
+             color = 'gray80') +
+  geom_text(data = rch_label %>%
+              filter(Watershed == "Pahsimeroi River"),
+            aes(label = label_txt,
+                x = label_rkm),
+            y = filter(hsi_rkm,
+                       watershed == "pahs") %>% 
+              pull(WUA) %>% 
+              max() * 0.98,
+            # y = 1.05 / coeff,
+            size = 3) +
   geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 0.5) +
   geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 0.5) +
   geom_smooth(aes(y = WUA, group = 1), 
@@ -815,6 +904,7 @@ pahs_hsi_p = hsi_rkm %>%
                                          name = "Hydraulic Habitat Suitability (HHS)",
                                          breaks = seq(0, 1, by = 0.25))) +
   theme_bw() +
+  theme(panel.grid = element_blank()) +
   labs(title = "Pahsimeroi",
        x = "River Kilometer",
        y = expression("Weighted Usable Area (WUA) m"^{2})) +
@@ -983,7 +1073,7 @@ upsa_hsi_p1 = hsi_p %>%
 upsa_hsi_p1
 ```
 
-```{r us-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the upper Salmon River (above Redfish Lake Creek) valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold."}
+```{r us-hsi-rkm-p, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and river kilometer for the upper Salmon River (above Redfish Lake Creek) valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach. Estimates by river kilometer are shown on the finer lines; a smoothed line is in bold. Geomorphic reaches are demarkated by vertical dashed lines, and labeled near the top of each plot."}
 coeff = hsi_rkm %>%
   filter(watershed == "upsa") %>%
   summarise_at(vars(WUA, HHS),
@@ -994,6 +1084,22 @@ coeff = hsi_rkm %>%
 upsa_hsi_p = hsi_rkm %>%
   filter(watershed == "upsa") %>%
   ggplot(aes(x = rkm)) +
+  # mark out geomorphic reaches
+  geom_vline(xintercept = rch_label %>%
+               filter(Watershed == "Salmon River") %>%
+               pull(sep_rkm),
+             linetype = 2,
+             color = 'gray80') +
+  geom_text(data = rch_label %>%
+              filter(Watershed == "Salmon River"),
+            aes(label = label_txt,
+                x = label_rkm),
+            y = filter(hsi_rkm,
+                       watershed == "upsa") %>% 
+              pull(WUA) %>% 
+              max() * 0.98,
+            # y = 1.1 / coeff,
+            size = 3) +
   geom_line(aes(y = WUA, group = 1), color = "royalblue4", size = 0.5) +
   geom_line(aes(y = HHS / coeff, group = 1), color = "orangered2", size = 0.5) +
   geom_smooth(aes(y = WUA, group = 1), 
@@ -1008,6 +1114,7 @@ upsa_hsi_p = hsi_rkm %>%
                                          name = "Hydraulic Habitat Suitability (HHS)",
                                          breaks = seq(0, 1, by = 0.25))) +
   theme_bw() +
+  theme(panel.grid = element_blank()) +
   labs(title = "Upper Salmon",
        x = "River Kilometer",
        y = expression("Weighted Usable Area (WUA) m"^{2})) +
