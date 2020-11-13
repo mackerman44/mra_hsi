@@ -13,17 +13,6 @@ author:
     email: kevin.see@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::html_document2:
-    theme: simplex
-    toc: yes
-    toc_depth: 3
-    toc_float: yes
-    fig_height: 6
-    fig_width: 8
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks.lua
-    - --lua-filter=../templates/pagebreak.lua
   bookdown::word_document2: 
     fig_caption: yes
     fig_height: 4
@@ -43,6 +32,17 @@ output:
     fig_width: 8
     includes:
       in_header: "../templates/header_ABS.tex"
+  bookdown::html_document2:
+    theme: simplex
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+    fig_height: 6
+    fig_width: 8
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks.lua
+    - --lua-filter=../templates/pagebreak.lua
 institute:
 - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
@@ -50,6 +50,7 @@ bibliography: references.bib
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+# setwd('markdown')
 # load knitr for markdown
 library(knitr)
 library(kableExtra)
@@ -66,7 +67,7 @@ library(ggpubr)
 library(sf)
 library(readxl)
 
-# setwd('markdown')
+
 ```
 
 # Introduction
@@ -979,6 +980,12 @@ Figure \@ref(fig:us-map-rkm) shows the hydraulic habitat suitability of each riv
 
 ```{r us-map, eval = F, results = 'hide', fig.cap = "Map showing the mean composite suitability by life stage and across geomorphic reaches for Chinook salmon and steelhead in the Upper Salmon (above Redfish Lake Creek) valley segment."}
 # map by scenario
+us_poly_label = st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
+              dplyr::select(GeoReach, geometry) %>%
+              rename(Name = GeoReach) %>%
+              mutate(Name = str_replace(Name, "-", "_")) %>%
+              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0")))
+
 us_cs_map = us_cs %>%
   group_by(species, scenario, geo_reach) %>%
   summarise(mean = mean(value),
@@ -990,11 +997,7 @@ us_cs_map = us_cs %>%
                            "Juvenile Spring Rearing" = "Juvenile\nSpring\nRearing",
                            "Juvenile Summer Rearing" = "Juvenile\nSummer\nRearing",
                            "Juvenile Winter Rearing" = "Juvenile\nWinter\nRearing")) %>%
-  left_join(st_read("../data/geomorph/geo_reaches/US_Poly_Label.shp") %>%
-              dplyr::select(GeoReach, geometry) %>%
-              rename(Name = GeoReach) %>%
-              mutate(Name = str_replace(Name, "-", "_")) %>%
-              mutate(Name = paste0("GR_", str_pad(sub(".*_", "", Name), 2, pad = "0"))),
+  left_join(us_poly_label,
             by = c("geo_reach" = "Name"))  %>%
   st_as_sf() %>%
   ggplot() +
@@ -1011,7 +1014,8 @@ us_cs_map = us_cs %>%
   theme(axis.text.x = element_text(angle = -45, vjust = 0),
         axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        legend.position = "top")
+        legend.position = "top") +
+  coord_sf(xlim = st_bbox(us_poly_label)[c(1,3)] + c(0, 2000))
 us_cs_map
 #ggsave("../output/figures/us_cs_map.pdf", us_cs_map)
 ```
