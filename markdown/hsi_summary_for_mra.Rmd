@@ -13,25 +13,6 @@ author:
     email: kevin.see@merck.com
 date: '`r format(Sys.Date(), "%B %d, %Y")`'
 output:
-  bookdown::word_document2: 
-    fig_caption: yes
-    fig_height: 4
-    fig_width: 7
-    toc: yes
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks.lua
-    - --lua-filter=../templates/pagebreak.lua
-    reference_docx: "../templates/ReportTemplate.docx"
-  bookdown::pdf_document2:
-    pandoc_args:
-    - --lua-filter=../templates/scholarly-metadata.lua
-    - --lua-filter=../templates/author-info-blocks2.lua
-    - --lua-filter=../templates/pagebreak.lua
-    fig_height: 6
-    fig_width: 8
-    includes:
-      in_header: "../templates/header_ABS.tex"
   bookdown::html_document2:
     theme: simplex
     toc: yes
@@ -43,6 +24,25 @@ output:
     - --lua-filter=../templates/scholarly-metadata.lua
     - --lua-filter=../templates/author-info-blocks.lua
     - --lua-filter=../templates/pagebreak.lua
+  bookdown::pdf_document2:
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks2.lua
+    - --lua-filter=../templates/pagebreak.lua
+    fig_height: 6
+    fig_width: 8
+    includes:
+      in_header: "../templates/header_ABS.tex"
+  bookdown::word_document2: 
+    fig_caption: yes
+    fig_height: 4
+    fig_width: 7
+    toc: yes
+    pandoc_args:
+    - --lua-filter=../templates/scholarly-metadata.lua
+    - --lua-filter=../templates/author-info-blocks.lua
+    - --lua-filter=../templates/pagebreak.lua
+    reference_docx: "../templates/ReportTemplate.docx"
 institute:
 - biomark: Biomark, Inc.
 csl: "../templates/american-fisheries-society.csl"
@@ -66,6 +66,7 @@ library(tidyverse)
 library(ggpubr)
 library(sf)
 library(readxl)
+library(QRFcapacity)
 
 
 ```
@@ -377,9 +378,10 @@ ul_cs_map = ul_cs %>%
   theme_bw() +
   labs(fill = "Mean Composite Suitability") +
   facet_grid(species ~ scenario) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 0),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
+  theme(#axis.text.x = element_text(angle = -45, vjust = 0),
+        axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank(),
         legend.position = "top")
 ul_cs_map
 #ggsave("../output/figures/ul_cs_map.pdf", ul_cs_map)
@@ -387,10 +389,43 @@ ul_cs_map
 
 ```{r ul-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Upper Lemhi valley segment, plotted by river kilometer with geomorphic reaches also shown."}
 # map by scenario
+flowlines = geo_rchs %>% 
+  filter(watershed == "lemh", 
+         rch_num < 9) %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>%
+  QRFcapacity::get_flowlines(stream_order = 3,
+                             wtsd_polygon = .)
+
+flw_label = flowlines %>%
+  filter(!grepl("Lemhi", gnis_name),
+         gnis_name != " ") %>%
+  arrange(gnis_name, Hydroseq) %>%
+  select(gnis_name, Hydroseq, StreamOrde, LENGTHKM) %>%
+  group_by(gnis_name) %>%
+  filter(Hydroseq == max(Hydroseq)) %>%
+  ungroup() %>%
+  # pull(gnis_name)
+  filter(gnis_name %in% c("Big Eightmile Creek",
+                          # "Big Timber Creek",
+                          "Texas Creek",
+                          "Lee Creek",
+                          "Alder Creek"))
+
 ul_cs_map2 = rch_hsi %>%
   filter(watershed == "lemh") %>%
   filter(Reach > 53) %>%
   ggplot() +
+  geom_sf(data = flowlines,
+          color = "gray60") +
+  ggrepel::geom_text_repel(data = flw_label,
+                           aes(label = gnis_name,
+                               geometry = geometry),
+                           color = "gray60",
+                           size = 2,
+                           stat = "sf_coordinates",
+                           nudge_x = -100,
+                           nudge_y = -200) +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
   # scale_color_viridis_c() +
@@ -409,12 +444,18 @@ ul_cs_map2 = rch_hsi %>%
                 size = 2,
                 nudge_x = 3000,
                 nudge_y = 500) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 0),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
         legend.position = "top") +
   facet_grid(species ~ scenario)
 ul_cs_map2
+ggsave(filename = "../output/figures/ul-map-rkm.png",
+       plot = ul_cs_map2,
+       width = 6.5,
+       height = 5,
+       dpi = 300)
 ```
 
 ```{r ul-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA; blue) shown on the primary axis and the hydraulic habitat suitability (HHS; orange) i.e., normalized WUA on the secondary axis by species, life stage, and geomorphic reach for the upper Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
@@ -609,10 +650,38 @@ scenario_names = c(
   `Juvenile Winter Rearing` = "Juvenile\nWinter Rearing"
 )
 
+flowlines = geo_rchs %>% 
+  filter(watershed == "lemh", 
+         rch_num >= 9) %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>%
+  st_buffer(dist = 1500) %>%
+  QRFcapacity::get_flowlines(stream_order = 3,
+                             wtsd_polygon = .) %>%
+  filter(!grepl("Williams Creek", gnis_name),
+         !grepl('Trail Creek', gnis_name),
+         gnis_name != " ")
+
+flw_label = flowlines %>%
+  filter(!grepl("Lemhi", gnis_name)) %>%
+  arrange(gnis_name, Hydroseq) %>%
+  select(gnis_name, Hydroseq, StreamOrde, TotDASqKM, LENGTHKM) %>%
+  group_by(gnis_name) %>%
+  summarize(Hydroseq = max(Hydroseq),
+            TotDASqKM = max(TotDASqKM),
+            LENGTHKM = sum(LENGTHKM),
+            .groups = "drop") %>%
+  arrange(desc(TotDASqKM)) %>%
+  slice(1:2)
+
+
+
 ll_cs_map2 = rch_hsi %>%
   filter(watershed == "lemh") %>%
   filter(Reach <= 53) %>%
   ggplot() +
+  geom_sf(data = flowlines,
+          color = "gray60") +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
   # scale_color_viridis_c() +
@@ -631,13 +700,27 @@ ll_cs_map2 = rch_hsi %>%
                 size = 2,
                 nudge_x = 3000,
                 nudge_y = 500) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 0),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
+  geom_text(data = flw_label,
+             aes(label = gnis_name,
+                 geometry = geometry),
+             color = "gray60",
+             size = 2,
+             stat = "sf_coordinates",
+             nudge_x = if_else(grepl("Hayden", flw_label$gnis_name), -5000, 6000),
+             nudge_y = if_else(grepl("Salmon", flw_label$gnis_name), 7000, 100)) +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
         legend.position = "top") +
   facet_grid(species ~ scenario,
              labeller = labeller(scenario = as_labeller(scenario_names)))
 ll_cs_map2
+ggsave(filename = "../output/figures/ll-map-rkm.png",
+       plot = ll_cs_map2,
+       width = 6.5,
+       # height = 5,
+       dpi = 300)
 ```
 
 ```{r ll-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the lower Lemhi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
@@ -814,9 +897,36 @@ ph_cs_map
 ```
 
 ```{r ph-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Lower Pahsimeroi valley segment, plotted by river kilometer with geomorphic reaches also shown."}
+flowlines = geo_rchs %>% 
+  filter(watershed == "pahs") %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>%
+  st_buffer(dist = 1500) %>%
+  QRFcapacity::get_flowlines(stream_order = 3,
+                             wtsd_polygon = .) %>%
+  filter(gnis_name != " ")
+
+flw_label = flowlines %>%
+  filter(!grepl("Pahsimeroi", gnis_name)) %>%
+  arrange(gnis_name, Hydroseq) %>%
+  select(gnis_name, Hydroseq, StreamOrde, TotDASqKM, LENGTHKM) %>%
+  group_by(gnis_name) %>%
+  summarize(Hydroseq = max(Hydroseq),
+            TotDASqKM = max(TotDASqKM),
+            LENGTHKM = sum(LENGTHKM),
+            .groups = "drop") %>%
+  arrange(desc(TotDASqKM)) %>%
+  mutate(across(gnis_name,
+                str_replace,
+                " ", "\n")) %>%
+  slice(1:3)
+
+
 ph_cs_map2 = rch_hsi %>%
   filter(watershed == "pahs") %>%
   ggplot() +
+  geom_sf(data = flowlines,
+          color = "gray60") +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
   # scale_color_viridis_c() +
@@ -833,12 +943,28 @@ ph_cs_map2 = rch_hsi %>%
                 size = 2,
                 nudge_x = 3000,
                 nudge_y = 500) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 0),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
+  geom_text(data = flw_label,
+            aes(label = gnis_name,
+                geometry = geometry),
+            color = "gray60",
+            size = 2,
+            stat = "sf_coordinates",
+            # nudge_x = 4000,
+            nudge_x = if_else(!grepl("Goldburg", flw_label$gnis_name), 4500, -3000),
+            nudge_y = if_else(grepl("Salmon", flw_label$gnis_name), 1500, 
+                              if_else(grepl("Patterson", flw_label$gnis_name), 200, 100))) +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
         legend.position = "top") +
   facet_grid(species ~ scenario)
 ph_cs_map2
+ggsave(filename = "../output/figures/ph-map-rkm.png",
+       plot = ph_cs_map2,
+       width = 6.5,
+       height = 5,
+       dpi = 300)
 ```
 
 ```{r ph-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e. normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the Pahsimeroi River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
@@ -1021,6 +1147,31 @@ us_cs_map
 ```
 
 ```{r us-map-rkm, results = 'hide', fig.cap = "Map showing the hydraulic habitat suitability by life stage for Chinook salmon and steelhead in the Upper Salmon (above Redfish Lake Creek)  valley segment, plotted by river kilometer with geomorphic reaches also shown."}
+flowlines = geo_rchs %>% 
+  filter(watershed == "upsa") %>% 
+  st_bbox() %>% 
+  st_as_sfc() %>%
+  st_buffer(dist = 1500) %>%
+  QRFcapacity::get_flowlines(stream_order = 3,
+                             wtsd_polygon = .) %>%
+  filter(gnis_name != " ")
+
+flw_label = flowlines %>%
+  filter(!grepl("Salmon", gnis_name)) %>%
+  arrange(gnis_name, Hydroseq) %>%
+  select(gnis_name, Hydroseq, StreamOrde, TotDASqKM, LENGTHKM) %>%
+  group_by(gnis_name) %>%
+  summarize(Hydroseq = max(Hydroseq),
+            TotDASqKM = max(TotDASqKM),
+            LENGTHKM = sum(LENGTHKM),
+            .groups = "drop") %>%
+  arrange(desc(TotDASqKM)) %>%
+  mutate(across(gnis_name,
+                str_replace_all,
+                " ", "\n")) %>%
+  slice(1:3)
+
+
 us_cs_map2 = rch_hsi %>%
   filter(watershed == "upsa") %>%
   # hmm, probably a better solution that using labeller in the lower Lemhi map
@@ -1030,6 +1181,8 @@ us_cs_map2 = rch_hsi %>%
                            "Juvenile Summer Rearing" = "Juvenile\nSummer\nRearing",
                            "Juvenile Winter Rearing" = "Juvenile\nWinter\nRearing")) %>%
   ggplot() +
+  geom_sf(data = flowlines,
+          color = "gray60") +
   geom_sf(aes(color = HHS)) +
   theme_bw() +
   # scale_color_viridis_c() +
@@ -1044,14 +1197,32 @@ us_cs_map2 = rch_hsi %>%
             filter(watershed == 'upsa'),
             aes(label = rch_num),
                 size = 2,
-                nudge_x = 3000,
+                nudge_x = 2500,
                 nudge_y = 500) +
-  theme(axis.text.x = element_text(angle = -45, vjust = 0),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
+  geom_text(data = flw_label,
+            aes(label = gnis_name,
+                geometry = geometry),
+            color = "gray60",
+            size = 2,
+            stat = "sf_coordinates",
+            # nudge_x = 4000,
+            nudge_x = if_else(grepl("Redfish", flw_label$gnis_name), 500, 
+                              if_else(grepl("Alturas", flw_label$gnis_name), -4000, 2000)),
+            nudge_y = if_else(grepl("Redfish", flw_label$gnis_name), -3500, 
+                              if_else(grepl("Alturas", flw_label$gnis_name), 2000, 1000))) +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
         legend.position = "top") +
   facet_grid(species ~ scenario)
 us_cs_map2
+ggsave(filename = "../output/figures/us-map-rkm.png",
+       plot = us_cs_map2,
+       width = 6.5,
+       # height = 5,
+       dpi = 300)
+
 ```
 
 ```{r us-hsi-p, eval = F, fig.cap = "The weighted usable area (WUA) shown as points and on the primary axis and the hydraulic habitat suitability (HHS) i.e., normalized WUA shown as bars and on the secondary axis by species, life stage, and geomorphic reach for the upper Salmon River valley segment. The HHS is normalized by dividing the weighted usable area for each reach by the total area of that reach."}
