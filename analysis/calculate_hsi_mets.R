@@ -1,7 +1,7 @@
 ## Code for calculating WUA and HHS for Depth and Velocity rasters ##
 #
-# Created by: Richie Carmichael
-# Modified by: Mike Ackerman
+# Created by: Mike Ackerman
+#   w/ assistance from Richie Carmichael   
 #
 #####################################################################
 
@@ -19,10 +19,10 @@ ls   = "juv"  # life stage: either "juv" or "spw"
 ssn  = "sum"  # season: either "spr, "sum", or "win"
 
 # to loop over scenarios (e.g.)
-# watersheds = c("lemh", "pahs", "upsa") 
-# species  = c("chnk", "sthd")        
-# life_stages   = c("juv", "spw")
-# seasons  = c("sum", "win")
+watersheds = c("lemh", "pahs", "upsa")
+species  = c("chnk", "sthd")
+life_stages   = c("juv", "spw")
+seasons  = c("sum", "win")
 
 for(wtsd in watersheds) {
   for(spc in species) {

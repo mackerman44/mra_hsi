@@ -49,7 +49,7 @@ csl: "../templates/american-fisheries-society.csl"
 bibliography: references.bib
 ---
 
-```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r setup, echo = FALSE, message = FALSE, warning = FALSE, results = 'hide'}
 # setwd('markdown')
 # load knitr for markdown
 library(knitr)
@@ -63,6 +63,7 @@ options(knitr.table.format = "pandoc")
 
 # load packages for analysis
 library(tidyverse)
+library(here)
 library(ggpubr)
 library(sf)
 library(readxl)
@@ -110,7 +111,7 @@ Finally, composite suitability values were visualized by valley segment, species
 The resulting raster .tifs showing depth, velocity, and composite suitability are too large to store in a https://github.com/ repository, but are available from the authors upon request.
 
 ```{r rkm-geo-rch}
-load("../../MRA_Redds_NorWeST/data/mra_temp_rkm_redd_data_prepped.Rdata")
+load(here("data/mra_temp_rkm_redd_data_prepped.Rdata"))
 
 # reverse the direction of the rkms
 mra_rkm = mra_rkm %>% 
@@ -152,11 +153,11 @@ rch_label = rkm_gr %>%
                            as.numeric(max_rkm),
                            sep_rkm))
 
-
 rkm_gr %>%
   kable(booktabs = T,
         linesep = "",
-        caption = "The minimum and maximum river kilometer contained within each geomorphic reach. River kilometers increase as you move upstream") %>%
+        caption = "The minimum and maximum river kilometer contained within each geomorphic reach. 
+        River kilometers increase as you move upstream") %>%
   kable_styling()
 
 ```
@@ -165,7 +166,8 @@ rkm_gr %>%
 ## Habitat Suitability
 
 ```{r hsi-curves}
-hsi_df = read_csv("../data/hsi_curves/maret_hsi_curves_for_r.csv")
+hsi_df = read_csv(here("data/hsi_curves/maret_hsi_curves_for_r.csv"))
+
 ```
 
 Figures \@ref(fig:chnk-hsi) and \@ref(fig:sthd-hsi) show HSI curves for Chinook salmon and steelhead from @Maret2006, respectively, used here. These curves are used to calculate the depth or velocity suitability value for each pixel within a given scenario. The composite suitability for a pixel is then calculated as the geometric mean of those values. As an example, using juvenile Chinook salmon and depth, if a pixel has a depth of 0m, that pixel is assigned a suitability of 0 whereas if the depth is greater than approximately 0.6m it is assigned a suitability of 1; a depth of 0.5m would be assigned a suitability of $\sim$ 0.7.
@@ -184,6 +186,7 @@ chnk_hsi = hsi_df %>%
        title = "Chinook salmon")
 chnk_hsi
 #ggsave("../output/figures/chnk_hsi_curve.pdf", chnk_hsi)
+
 ```
 
 ```{r sthd-hsi, fig.height = 4, fig.cap = "Suitability indices at varying depths and velocities for juvenile rearing and adult spawning for steelhead from Maret et al. (2006)."}
@@ -199,6 +202,7 @@ sthd_hsi = hsi_df %>%
        title = "Steelhead")
 sthd_hsi
 #ggsave("../output/figures/sthd_hsi_curve.pdf", sthd_hsi)
+
 ```
 
 ```{r hsi-p-prep}
